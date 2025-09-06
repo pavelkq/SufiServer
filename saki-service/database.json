@@ -1,0 +1,10 @@
+{
+  "dev": {
+    "driver": "pg",
+    "host": "db",
+    "database": "saki",
+    "user": "user",
+    "password": "pass",
+    "port": 5432
+  }
+}

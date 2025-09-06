@@ -1,0 +1,19 @@
+{
+  "name": "saki-service",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "migrate": "db-migrate up",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "db-migrate-pg": "^1.5.2",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}

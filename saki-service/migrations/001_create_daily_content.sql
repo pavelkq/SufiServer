@@ -1,0 +1,7 @@
+CREATE TABLE daily_content (
+  id SERIAL PRIMARY KEY,
+  date DATE UNIQUE NOT NULL,
+  main_text TEXT NOT NULL,
+  comment_text TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
