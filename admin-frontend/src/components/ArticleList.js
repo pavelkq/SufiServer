@@ -8,12 +8,14 @@ import {
   TextInput,
   TopToolbar,
   CreateButton,
+  EditButton,
   DeleteButton,
   Loading,
   Error as RaError,
   useDataProvider,
   useListContext,
   useNotify,
+  useRecordContext,
   useRefresh,
 } from 'react-admin';
 import {
@@ -27,6 +29,8 @@ import {
   Tab,
   Box,
   Typography,
+  TableRow,
+  TableCell,
 } from '@mui/material';
 import { 
   lightBlue, 
@@ -34,7 +38,7 @@ import {
   orange, 
   pink, 
   yellow 
-} from '@mui/material/colors';
+} from '@mui/material/colors'; // Добавляем импорт цветов
 
 import { useCategories } from './hooks/useCategories';
 import { useTags } from './hooks/useTags';
@@ -48,8 +52,30 @@ const GROUP_COLORS = {
   5: pink[100],
 };
 
+// Кастомная строка таблицы с цветом группы
+const ColoredRow = ({ children, ...props }) => {
+  const record = useRecordContext();
+  const backgroundColor = record?.group_id ? GROUP_COLORS[record.group_id] : 'inherit';
+  const hoverBackgroundColor = record?.group_id ? `${GROUP_COLORS[record.group_id]}CC` : 'inherit';
+  
+  return (
+    <TableRow
+      {...props}
+      sx={{
+        backgroundColor: backgroundColor,
+        '&:hover': {
+          backgroundColor: hoverBackgroundColor,
+        },
+      }}
+    >
+      {children}
+    </TableRow>
+  );
+};
+
 // Кастомная ячейка для даты с стилизацией по статусу
-const CustomDateField = ({ record, ...props }) => {
+const CustomDateField = ({ ...props }) => {
+  const record = useRecordContext();
   const now = new Date();
   const publishDate = record?.publish_date ? new Date(record.publish_date) : null;
   
@@ -67,7 +93,7 @@ const CustomDateField = ({ record, ...props }) => {
       }}
     >
       {publishDate ? (
-        <DateField source="publish_date" showTime record={record} {...props} />
+        <DateField source="publish_date" showTime {...props} />
       ) : (
         <Typography variant="body2" color="text.secondary">
           Черновик
@@ -186,70 +212,6 @@ const TagsModal = ({ open, onClose, tagsText, setTagsText, onSave, loading, erro
     </DialogActions>
   </Dialog>
 );
-
-// Кастомный Datagrid с цветными строками
-const ColoredDatagrid = ({ rowClick, ...props }) => {
-  const { data, isLoading, error } = useListContext();
-  
-  if (isLoading) return <Loading />;
-  if (error) return <RaError error={error} />;
-  if (!data || data.length === 0) return <Typography variant="body1">Нет статей</Typography>;
-
-  return (
-    <Box sx={{ mt: 2 }}>
-      {data.map(record => (
-        <Box
-          key={record.id}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: record.group_id ? GROUP_COLORS[record.group_id] : '#ffffff',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            marginBottom: '8px',
-            border: '1px solid',
-            borderColor: 'divider',
-            '&:hover': {
-              backgroundColor: record.group_id 
-                ? `${GROUP_COLORS[record.group_id]}CC` 
-                : '#f5f5f5',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            },
-            transition: 'all 0.2s ease',
-            cursor: 'pointer',
-          }}
-          onClick={() => rowClick && rowClick(record.id, record, 'edit')}
-        >
-          {/* Дата публикации */}
-          <Box sx={{ flex: 1, minWidth: '150px' }}>
-            <CustomDateField record={record} />
-          </Box>
-          
-          {/* Название */}
-          <Box sx={{ flex: 2, minWidth: '200px', padding: '0 16px' }}>
-            <Typography variant="body1">{record.title}</Typography>
-          </Box>
-          
-          {/* Кнопка удаления */}
-          <Box sx={{ flex: 0.5, display: 'flex', justifyContent: 'flex-end' }}>
-            <DeleteButton
-              record={record}
-              mutationMode="pessimistic"
-              confirmTitle="Подтверждение удаления"
-              confirmContent="Вы уверены, что хотите удалить эту статью?"
-              sx={{
-                backgroundColor: '#ffffff',
-                '&:hover': {
-                  backgroundColor: '#ffebee',
-                },
-              }}
-            />
-          </Box>
-        </Box>
-      ))}
-    </Box>
-  );
-};
 
 const ArticleList = (props) => {
   const dataProvider = useDataProvider();
@@ -392,7 +354,24 @@ const ArticleList = (props) => {
         }}
       >
         <CategoryTabs categories={categoriesHook.categories} />
-        <ColoredDatagrid rowClick="edit" />
+        <Datagrid
+          rowClick="edit"
+          sx={{
+            '& .RaDatagrid-headerCell': {
+              fontWeight: 'bold',
+            },
+          }}
+          row={ColoredRow} // УБЕДИТЕСЬ, что эта строка есть!
+        >
+          <CustomDateField label="Дата публикации" />
+          <TextField source="title" label="Название" />
+          <EditButton />
+          <DeleteButton 
+            mutationMode="pessimistic"
+            confirmTitle="Подтверждение удаления"
+            confirmContent="Вы уверены, что хотите удалить эту статью?"
+          />
+        </Datagrid>
       </List>
 
       <TagsModal

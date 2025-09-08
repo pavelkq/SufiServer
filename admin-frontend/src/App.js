@@ -4,39 +4,34 @@ import { Route } from 'react-router-dom';
 import ResetPassword from './pages/ResetPassword';
 import dataProvider from './dataProvider';
 import authProvider from './authProvider';
-
-// Импортируем русский перевод
-import polyglotI18nProvider from 'ra-i18n-polyglot';
-import russianMessages from 'ra-language-russian';
+// Импортируем i18nProvider, расширенный вашими переводами
+import i18nProvider from './i18nProvider'; 
 
 // Компоненты пользователей
 import { UserList } from './components/UserList';
 import { UserEdit } from './components/UserEdit';
-
-// Компоненты статей - используем только ArticleEdit для создания и редактирования
+// Компоненты статей - разделяем создание и редактирование
 import ArticleList from './components/ArticleList';
 import ArticleEdit from './components/ArticleEdit';
-
+import ArticleCreate from './components/ArticleCreate';
 // Компоненты категорий
 import { CategoryList } from './components/CategoryList';
 import { CategoryEdit } from './components/CategoryEdit';
 import { CategoryCreate } from './components/CategoryCreate';
 
-const i18nProvider = polyglotI18nProvider(() => russianMessages, 'ru');
-
 const App = () => (
   <Admin
     dataProvider={dataProvider}
     authProvider={authProvider}
-    i18nProvider={i18nProvider}
+    i18nProvider={i18nProvider} // используем кастомный i18nProvider с вашими переводами
     locale="ru"
   >
     <Resource name="users" list={UserList} edit={UserEdit} />
     <Resource 
       name="articles" 
       list={ArticleList} 
-      edit={ArticleEdit}
-      create={ArticleEdit} // Используем тот же компонент для создания
+      edit={ArticleEdit} 
+      create={ArticleCreate} 
     />
     <CustomRoutes noLayout>
       <Route path="/reset-password" element={<ResetPassword />} />
