@@ -8,15 +8,13 @@ import {
   TextInput,
   TopToolbar,
   CreateButton,
-  EditButton,
-  DeleteButton,
+  useDataProvider,
+  useNotify,
+  useRefresh,
   Loading,
   Error as RaError,
-  useDataProvider,
   useListContext,
-  useNotify,
   useRecordContext,
-  useRefresh,
 } from 'react-admin';
 import {
   Button,
@@ -29,75 +27,56 @@ import {
   Tab,
   Box,
   Typography,
-  TableRow,
-  TableCell,
 } from '@mui/material';
-import { 
-  lightBlue, 
-  lightGreen, 
-  orange, 
-  pink, 
-  yellow 
-} from '@mui/material/colors'; // Добавляем импорт цветов
+import {
+  lightBlue,
+  lightGreen,
+  orange,
+  pink,
+  yellow,
+} from '@mui/material/colors';
 
 import { useCategories } from './hooks/useCategories';
 import { useTags } from './hooks/useTags';
 
-// Цвета для групп
-const GROUP_COLORS = {
-  1: lightBlue[100],
-  2: lightGreen[100],
-  3: yellow[100],
-  4: orange[100],
-  5: pink[100],
+// Проп rowSx для раскраски строк по группе
+const rowSx = (record) => {
+  const GROUP_COLORS = {
+    1: lightBlue[100],
+    2: lightGreen[100],
+    3: yellow[100],
+    4: orange[100],
+    5: pink[100],
+  };
+  return {
+    backgroundColor: record?.group_id ? GROUP_COLORS[record.group_id] : 'inherit',
+    '&:hover': {
+      backgroundColor: record?.group_id ? `${GROUP_COLORS[record.group_id]}CC` : 'inherit',
+    },
+  };
 };
 
-// Кастомная строка таблицы с цветом группы
-const ColoredRow = ({ children, ...props }) => {
-  const record = useRecordContext();
-  const backgroundColor = record?.group_id ? GROUP_COLORS[record.group_id] : 'inherit';
-  const hoverBackgroundColor = record?.group_id ? `${GROUP_COLORS[record.group_id]}CC` : 'inherit';
-  
-  return (
-    <TableRow
-      {...props}
-      sx={{
-        backgroundColor: backgroundColor,
-        '&:hover': {
-          backgroundColor: hoverBackgroundColor,
-        },
-      }}
-    >
-      {children}
-    </TableRow>
-  );
-};
-
-// Кастомная ячейка для даты с стилизацией по статусу
-const CustomDateField = ({ ...props }) => {
+const CustomDateField = (props) => {
   const record = useRecordContext();
   const now = new Date();
   const publishDate = record?.publish_date ? new Date(record.publish_date) : null;
-  
   let status = 'draft';
   if (publishDate) {
     status = publishDate > now ? 'scheduled' : 'published';
   }
-
   return (
     <Box
       sx={{
-        color: status === 'published' ? 'success.main' : 
-              status === 'scheduled' ? 'warning.main' : 'text.secondary',
+        color: status === 'published' ? 'success.main'
+          : status === 'scheduled' ? 'warning.main'
+          : 'text.secondary',
         fontWeight: status === 'draft' ? 'bold' : 'normal',
       }}
     >
       {publishDate ? (
         <DateField source="publish_date" showTime {...props} />
       ) : (
-        <Typography variant="body2" color="text.secondary">
-          Черновик
-        </Typography>
+        <Typography variant="body2" color="text.secondary">Черновик</Typography>
       )}
     </Box>
   );
@@ -110,12 +89,10 @@ const ArticleFilter = (props) => (
   </Filter>
 );
 
-// Компонент вкладок категорий
 const CategoryTabs = ({ categories }) => {
   const { filterValues, setFilters } = useListContext();
-  
-  const selectedCategoryId = filterValues.category_id != null 
-    ? String(filterValues.category_id) 
+  const selectedCategoryId = filterValues.category_id != null
+    ? String(filterValues.category_id)
     : 'all';
 
   const handleChange = (event, newValue) => {
@@ -147,12 +124,8 @@ const CategoryTabs = ({ categories }) => {
         {categories
           .slice()
           .sort((a, b) => a.name.localeCompare(b.name))
-          .map((cat) => (
-            <Tab 
-              key={cat.id} 
-              label={cat.name} 
-              value={String(cat.id)}
-            />
+          .map(cat => (
+            <Tab key={cat.id} label={cat.name} value={String(cat.id)} />
           ))}
       </Tabs>
     </Box>
@@ -171,7 +144,15 @@ const ArticleListActions = ({ onOpenCategories, onOpenTags }) => (
   </TopToolbar>
 );
 
-const TagsModal = ({ open, onClose, tagsText, setTagsText, onSave, loading, error }) => (
+const TagsModal = ({
+  open,
+  onClose,
+  tagsText,
+  setTagsText,
+  onSave,
+  loading,
+  error,
+}) => (
   <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
     <DialogTitle>Редактирование тем</DialogTitle>
     <DialogContent dividers>
@@ -182,7 +163,7 @@ const TagsModal = ({ open, onClose, tagsText, setTagsText, onSave, loading, erro
           <TextareaAutosize
             aria-label="Темы"
             minRows={10}
-            style={{ 
+            style={{
               width: '100%',
               fontFamily: 'monospace',
               padding: '8px',
@@ -201,9 +182,9 @@ const TagsModal = ({ open, onClose, tagsText, setTagsText, onSave, loading, erro
       <Button variant="outlined" onClick={onClose} disabled={loading}>
         Отмена
       </Button>
-      <Button 
-        variant="contained" 
-        onClick={onSave} 
+      <Button
+        variant="contained"
+        onClick={onSave}
         disabled={loading}
         color="primary"
       >
@@ -217,7 +198,6 @@ const ArticleList = (props) => {
   const dataProvider = useDataProvider();
   const notify = useNotify();
   const refresh = useRefresh();
-
   const categoriesHook = useCategories();
   const tagsHook = useTags();
 
@@ -234,7 +214,7 @@ const ArticleList = (props) => {
             pagination: { page: 1, perPage: 1000 },
             sort: { field: 'name', order: 'ASC' },
             filter: {},
-          })
+          }),
         ]);
         categoriesHook.setCategories(cats);
         tagsHook.setTags(tags);
@@ -248,50 +228,42 @@ const ArticleList = (props) => {
     categoriesHook.setCategoriesOpen(true);
     categoriesHook.loadCategoriesForModal();
   };
-
   const handleCloseCategories = () => {
     categoriesHook.setCategoriesOpen(false);
     categoriesHook.setCategoriesText('');
     categoriesHook.setErrorCats(null);
   };
-
   const handleOpenTags = () => {
     tagsHook.setTagsOpen(true);
     tagsHook.loadTagsForModal();
   };
-
   const handleCloseTags = () => {
     tagsHook.setTagsOpen(false);
     tagsHook.setTagsText('');
     tagsHook.setErrorTags(null);
   };
-
   const handleSaveCategories = async () => {
     if (categoriesHook.loadingCats) return;
-    
+
     if (!window.confirm('Вы уверены, что хотите сохранить изменения?')) {
       return;
     }
-
     try {
       categoriesHook.setLoadingCats(true);
       categoriesHook.setErrorCats(null);
-
       const { data: currentCategories } = await dataProvider.getList('categories', {
         pagination: { page: 1, perPage: 1000 },
         sort: { field: 'name', order: 'ASC' },
         filter: {},
       });
-
       const updatedCategories = await categoriesHook.handleSaveCategories(
         categoriesHook.categoriesText,
         currentCategories
       );
-
       categoriesHook.setCategories(updatedCategories);
       notify('Категории успешно обновлены', { type: 'info' });
       handleCloseCategories();
-      
+
     } catch (error) {
       console.error('Ошибка при сохранении категорий:', error);
       categoriesHook.setErrorCats(error.message || 'Ошибка при сохранении категорий');
@@ -300,33 +272,28 @@ const ArticleList = (props) => {
       categoriesHook.setLoadingCats(false);
     }
   };
-
   const handleSaveTags = async () => {
     if (tagsHook.loadingTags) return;
-    
+
     if (!window.confirm('Вы уверены, что хотите сохранить изменения?')) {
       return;
     }
-
     try {
       tagsHook.setLoadingTags(true);
       tagsHook.setErrorTags(null);
-
       const { data: currentTags } = await dataProvider.getList('tags', {
         pagination: { page: 1, perPage: 1000 },
         sort: { field: 'name', order: 'ASC' },
         filter: {},
       });
-
       const updatedTags = await tagsHook.handleSaveTags(
         tagsHook.tagsText,
         currentTags
       );
-
       tagsHook.setTags(updatedTags);
       notify('Темы успешно обновлены', { type: 'info' });
       handleCloseTags();
-      
+
     } catch (error) {
       console.error('Ошибка при сохранении тем:', error);
       tagsHook.setErrorTags(error.message || 'Ошибка при сохранении тем');
@@ -342,7 +309,7 @@ const ArticleList = (props) => {
         {...props}
         filters={<ArticleFilter />}
         actions={
-          <ArticleListActions 
+          <ArticleListActions
             onOpenCategories={handleOpenCategories}
             onOpenTags={handleOpenTags}
           />
@@ -356,24 +323,20 @@ const ArticleList = (props) => {
         <CategoryTabs categories={categoriesHook.categories} />
         <Datagrid
           rowClick="edit"
+          rowSx={rowSx}
           sx={{
             '& .RaDatagrid-headerCell': {
               fontWeight: 'bold',
             },
           }}
-          row={ColoredRow} // УБЕДИТЕСЬ, что эта строка есть!
         >
           <CustomDateField label="Дата публикации" />
           <TextField source="title" label="Название" />
-          <EditButton />
-          <DeleteButton 
-            mutationMode="pessimistic"
-            confirmTitle="Подтверждение удаления"
-            confirmContent="Вы уверены, что хотите удалить эту статью?"
-          />
+          {/* Удалены EditButton и DeleteButton по запросу */}
         </Datagrid>
       </List>
-
+      
+      {/* Модальное окно редактирования тем */}
       <TagsModal
         open={tagsHook.tagsOpen}
         onClose={handleCloseTags}
@@ -384,6 +347,7 @@ const ArticleList = (props) => {
         error={tagsHook.errorTags}
       />
 
+      {/* Модальное окно редактирования категорий */}
       <Dialog open={categoriesHook.categoriesOpen} onClose={handleCloseCategories} maxWidth="sm" fullWidth>
         <DialogTitle>Редактирование категорий ({categoriesHook.categories.length})</DialogTitle>
         <DialogContent dividers>
@@ -394,7 +358,7 @@ const ArticleList = (props) => {
               <TextareaAutosize
                 aria-label="Категории"
                 minRows={10}
-                style={{ 
+                style={{
                   width: '100%',
                   fontFamily: 'monospace',
                   padding: '8px',
@@ -414,9 +378,9 @@ const ArticleList = (props) => {
           <Button variant="outlined" onClick={handleCloseCategories} disabled={categoriesHook.loadingCats}>
             Отмена
           </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSaveCategories} 
+          <Button
+            variant="contained"
+            onClick={handleSaveCategories}
             disabled={categoriesHook.loadingCats}
             color="primary"
           >
