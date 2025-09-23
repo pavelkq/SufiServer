@@ -6,17 +6,18 @@ import { Visibility, Code } from '@mui/icons-material';
 import VisualToolbar from './VisualToolbar';
 import useTiptapEditor from './useTiptapEditor';
 import { EditorContent } from '@tiptap/react';
+import { htmlToJira, jiraToHtml } from './jiraConverter';
 
 const JiraStyleEditor = ({ source, label }) => {
   const { field } = useInput({ source });
   const [viewMode, setViewMode] = useState('visual');
-  const [textValue, setTextValue] = useState(field.value || '');
+  const [jiraText, setJiraText] = useState('');
   const lastContentRef = useRef(field.value || '');
   
+  // Используем полноценный TipTap редактор с HTML
   const { editor, setContent } = useTiptapEditor(
     field.value || '', 
     (html) => {
-      // Сохраняем только если контент действительно изменился
       if (html !== lastContentRef.current) {
         lastContentRef.current = html;
         field.onChange(html);
@@ -24,17 +25,14 @@ const JiraStyleEditor = ({ source, label }) => {
     }
   );
 
-  // Синхронизация только при внешних изменениях
+  // Синхронизация при внешних изменениях
   useEffect(() => {
     if (field.value !== lastContentRef.current) {
       lastContentRef.current = field.value || '';
-      setTextValue(field.value || '');
       
-      if (editor && viewMode === 'visual') {
-        // Сохраняем позицию курсора перед обновлением
+      if (viewMode === 'visual' && editor) {
         const previousSelection = editor.state.selection;
         setContent(field.value || '');
-        // Восстанавливаем позицию курсора
         editor.commands.setTextSelection(previousSelection);
       }
     }
@@ -42,18 +40,17 @@ const JiraStyleEditor = ({ source, label }) => {
 
   const handleModeChange = (newMode) => {
     if (newMode === 'text' && viewMode === 'visual') {
-      // При переключении в текстовый режим
+      // Конвертируем HTML -> Jira Wiki
       const jiraText = htmlToJira(field.value || '');
-      setTextValue(jiraText);
-      lastContentRef.current = jiraText;
-      field.onChange(jiraText);
+      setJiraText(jiraText);
     } else if (newMode === 'visual' && viewMode === 'text') {
-      // При переключении в визуальный режим
-      const html = jiraToHtml(textValue);
-      lastContentRef.current = html;
-      field.onChange(html);
+      // Конвертируем Jira Wiki -> HTML
+      const html = jiraToHtml(jiraText);
       if (editor) {
         setContent(html);
+      }
+      if (html !== field.value) {
+        field.onChange(html);
       }
     }
     setViewMode(newMode);
@@ -61,18 +58,11 @@ const JiraStyleEditor = ({ source, label }) => {
 
   const handleTextChange = (event) => {
     const newValue = event.target.value;
-    setTextValue(newValue);
-    lastContentRef.current = newValue;
-    field.onChange(newValue);
-  };
-
-  // Заглушки функций конвертации
-  const htmlToJira = (html) => {
-    return html;
-  };
-
-  const jiraToHtml = (jiraText) => {
-    return jiraText;
+    setJiraText(newValue);
+    if (viewMode === 'text') {
+      const html = jiraToHtml(newValue);
+      field.onChange(html);
+    }
   };
 
   return (
@@ -97,18 +87,18 @@ const JiraStyleEditor = ({ source, label }) => {
             startIcon={<Code />}
             onClick={() => handleModeChange('text')}
           >
-            Текст
+            Текст (Jira Wiki)
           </Button>
         </Box>
         
         {viewMode === 'visual' && (
           <Typography variant="caption" color="text.secondary">
-            Справка по визуальному режиму
+            Визуальный редактор с форматированием
           </Typography>
         )}
         {viewMode === 'text' && (
           <Typography variant="caption" color="text.secondary">
-            Справка по текстовому режиму
+            Редактирование в формате Jira Wiki
           </Typography>
         )}
       </Box>
@@ -144,11 +134,25 @@ const JiraStyleEditor = ({ source, label }) => {
             fontFamily: 'monospace', 
             padding: '8px',
             border: '1px solid #ccc',
-            borderRadius: '4px'
+            borderRadius: '4px',
+            whiteSpace: 'pre-wrap',
           }}
-          value={textValue}
+          value={jiraText}
           onChange={handleTextChange}
-          placeholder="Введите текст статьи в формате Jira Wiki..."
+          placeholder={`Введите текст статьи в формате Jira Wiki...
+
+Примеры форматирования:
+*жирный текст*
+_курсив_
++подчёркнутый+
+-зачёркнутый-
+{{код}}
+
+h1. Заголовок 1
+* пункт списка
+# нумерованный пункт
+{quote}цитата{quote}
+[ссылка|https://example.com]`}
         />
       )}
     </Box>
