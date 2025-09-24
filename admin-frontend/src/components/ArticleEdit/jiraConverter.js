@@ -4,7 +4,24 @@
 export const htmlToJira = (html) => {
   if (!html) return '';
   
+  console.log('Input HTML:', html);
+  
   let jiraText = html;
+
+  // Обрабатываем блоки кода с сырым HTML
+  jiraText = jiraText.replace(/<pre[^>]*data-raw-html[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match, content) => {
+    console.log('Found raw HTML code block:', content);
+    // В блоке кода оставляем HTML как есть - НЕ декодируем!
+    return `{code}\n${content}\n{code}\n\n`;
+  });
+
+  // Обычные блоки кода (экранированные)
+  jiraText = jiraText.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match, content) => {
+    console.log('Found regular code block:', content);
+    // Декодируем только обычные блоки кода
+    const decodedContent = decodeHtmlEntities(content);
+    return `{code}\n${decodedContent}\n{code}\n\n`;
+  });
 
   // Заголовки
   jiraText = jiraText.replace(/<h1[^>]*>(.*?)<\/h1>/gi, 'h1. $1\n\n');
@@ -18,7 +35,7 @@ export const htmlToJira = (html) => {
     return `{quote}\n${cleanContent}\n{quote}\n\n`;
   });
 
-  // Маркированные списки - улучшенная обработка
+  // Списки
   jiraText = jiraText.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (match, content) => {
     const listItems = content.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (match, itemContent) => {
       const cleanItem = itemContent.replace(/<[^>]*>/g, '').trim();
@@ -27,7 +44,6 @@ export const htmlToJira = (html) => {
     return listItems + '\n';
   });
 
-  // Нумерованные списки - улучшенная обработка
   jiraText = jiraText.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, content) => {
     const listItems = content.replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, (match, itemContent) => {
       const cleanItem = itemContent.replace(/<[^>]*>/g, '').trim();
@@ -36,94 +52,136 @@ export const htmlToJira = (html) => {
     return listItems + '\n';
   });
 
-  // Жирный текст
+  // Inline форматирование
   jiraText = jiraText.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '*$1*');
   jiraText = jiraText.replace(/<b[^>]*>(.*?)<\/b>/gi, '*$1*');
-
-  // Курсив
   jiraText = jiraText.replace(/<em[^>]*>(.*?)<\/em>/gi, '_$1_');
   jiraText = jiraText.replace(/<i[^>]*>(.*?)<\/i>/gi, '_$1_');
-
-  // Подчеркнутый
   jiraText = jiraText.replace(/<u[^>]*>(.*?)<\/u>/gi, '+$1+');
-
-  // Зачеркнутый
   jiraText = jiraText.replace(/<s[^>]*>(.*?)<\/s>/gi, '-$1-');
   jiraText = jiraText.replace(/<strike[^>]*>(.*?)<\/strike>/gi, '-$1-');
   jiraText = jiraText.replace(/<del[^>]*>(.*?)<\/del>/gi, '-$1-');
-
-  // Код
   jiraText = jiraText.replace(/<code[^>]*>(.*?)<\/code>/gi, '{{$1}}');
-
-  // Ссылки
   jiraText = jiraText.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2|$1]');
 
-  // Абзацы
+  // Абзацы и переносы
   jiraText = jiraText.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
   jiraText = jiraText.replace(/<br\s*\/?>/gi, '\n');
   jiraText = jiraText.replace(/<div[^>]*>(.*?)<\/div>/gi, '$1\n');
 
-  // Убираем все оставшиеся HTML теги
+  // Убираем оставшиеся теги
   jiraText = jiraText.replace(/<[^>]*>/g, '');
   
-  // Чистка лишних переносов
+  // Чистка
   jiraText = jiraText.replace(/\n\s*\n\s*\n/g, '\n\n');
   jiraText = jiraText.replace(/^\s+|\s+$/g, '');
   jiraText = jiraText.replace(/\n{3,}/g, '\n\n');
 
+  console.log('Final Jira:', jiraText);
   return jiraText.trim();
 };
 
-// Конвертация Jira Wiki -> HTML (ПЕРЕПИСАНА!)
+// Конвертация Jira Wiki -> HTML
 export const jiraToHtml = (jiraText) => {
   if (!jiraText) return '';
   
   let html = jiraText;
-
-  // Разбиваем на строки для правильной обработки
   const lines = html.split('\n');
-  let inList = false;
-  let listType = ''; // 'ul' или 'ol'
   let result = [];
+  let inList = false;
+  let inCodeBlock = false;
+  let inQuote = false;
+  let listType = '';
+  let codeContent = '';
+  let quoteContent = '';
+
+  // Функция для обработки ссылок в тексте - УПРОЩЕННАЯ ВЕРСИЯ
+  const processLinks = (text) => {
+    console.log('Processing links in text:', text);
+    
+    // Упрощенное регулярное выражение для ссылок
+    const linkRegex = /\[([^\|\]]+)\|([^\]]+)\]/g;
+    const result = text.replace(linkRegex, 
+      (match, linkText, linkUrl) => {
+        console.log('Found link:', linkText, '->', linkUrl);
+        return `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer nofollow">${linkText}</a>`;
+      }
+    );
+    
+    console.log('After link processing:', result);
+    return result;
+  };
+
+ // Функция для обработки inline-форматирования - УПРОЩЕННАЯ ВЕРСИЯ
+const processInlineFormatting = (text) => {
+  // Сначала обрабатываем ссылки
+  let processedText = processLinks(text);
+  
+  // Остальное форматирование БЕЗ экранирования HTML
+  processedText = processedText
+    .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    .replace(/\+([^+]+)\+/g, '<u>$1</u>')
+    .replace(/-([^-]+)-/g, '<s>$1</s>')
+    .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>');
+  
+  return processedText;
+};
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
 
-    // Пропускаем пустые строки
-    if (!line) {
+    // Блоки кода
+    if (line === '{code}') {
       if (inList) {
         result.push(`</${listType}>`);
         inList = false;
       }
-      result.push('');
-      continue;
-    }
-
-    // Заголовки
-    if (line.match(/^h[1-4]\. /)) {
-      if (inList) {
-        result.push(`</${listType}>`);
-        inList = false;
+      if (inQuote) {
+        result.push('</blockquote>');
+        inQuote = false;
       }
-      const level = line.match(/^h([1-4])\. /)[1];
-      const content = line.replace(/^h[1-4]\. /, '');
-      result.push(`<h${level}>${processInlineFormatting(content)}</h${level}>`);
+      inCodeBlock = true;
+      codeContent = '';
+      i++;
+      while (i < lines.length && lines[i].trim() !== '{code}') {
+        codeContent += lines[i] + '\n';
+        i++;
+      }
+      result.push(`<pre data-raw-html="true"><code class="code-block">${codeContent.trim()}</code></pre>`);
       continue;
     }
 
     // Цитаты
     if (line === '{quote}') {
-      if (inList) {
-        result.push(`</${listType}>`);
-        inList = false;
-      }
-      let quoteContent = '';
+      if (inList) result.push(`</${listType}>`);
+      if (inCodeBlock) inCodeBlock = false;
+      inQuote = true;
+      quoteContent = '';
       i++;
       while (i < lines.length && lines[i].trim() !== '{quote}') {
         quoteContent += lines[i] + '\n';
         i++;
       }
       result.push(`<blockquote><p>${processInlineFormatting(quoteContent.trim())}</p></blockquote>`);
+      inQuote = false;
+      continue;
+    }
+
+    if (!line) {
+      if (inList) result.push(`</${listType}>`);
+      if (inQuote) result.push('</blockquote>');
+      result.push('');
+      continue;
+    }
+
+    // Заголовки
+    if (line.match(/^h[1-4]\. /)) {
+      if (inList) result.push(`</${listType}>`);
+      if (inQuote) result.push('</blockquote>');
+      const level = line.match(/^h([1-4])\. /)[1];
+      const content = line.replace(/^h[1-4]\. /, '');
+      result.push(`<h${level}>${processInlineFormatting(content)}</h${level}>`);
       continue;
     }
 
@@ -158,30 +216,16 @@ export const jiraToHtml = (jiraText) => {
       result.push(`</${listType}>`);
       inList = false;
     }
+    if (inQuote) {
+      result.push('</blockquote>');
+      inQuote = false;
+    }
+    
     result.push(`<p>${processInlineFormatting(line)}</p>`);
   }
 
-  // Закрываем последний список если нужно
-  if (inList) {
-    result.push(`</${listType}>`);
-  }
-
-  // Функция для обработки inline-форматирования
-  function processInlineFormatting(text) {
-    return text
-      // Жирный
-      .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
-      // Курсив
-      .replace(/_([^_]+)_/g, '<em>$1</em>')
-      // Подчеркнутый
-      .replace(/\+([^+]+)\+/g, '<u>$1</u>')
-      // Зачеркнутый
-      .replace(/-([^-]+)-/g, '<s>$1</s>')
-      // Код
-      .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>')
-      // Ссылки
-      .replace(/\[([^|\]]+)\|([^]]+)\]/g, '<a href="$2" target="_blank" rel="noopener noreferrer nofollow">$1</a>');
-  }
+  if (inList) result.push(`</${listType}>`);
+  if (inQuote) result.push('</blockquote>');
 
   html = result.join('\n');
   
@@ -190,5 +234,17 @@ export const jiraToHtml = (jiraText) => {
   html = html.replace(/<p><p>/g, '<p>');
   html = html.replace(/<\/p><\/p>/g, '</p>');
 
+  console.log('Final HTML:', html);
   return html;
 };
+
+// Функция для декодирования HTML entities
+function decodeHtmlEntities(text) {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}

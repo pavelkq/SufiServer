@@ -14,6 +14,7 @@ import {
   FormatUnderlined,
   FormatStrikethrough,
   Code,
+  CodeOff,
   FormatQuote,
   FormatListBulleted,
   FormatListNumbered,
@@ -170,7 +171,7 @@ const VisualToolbar = ({ editor }) => {
           </IconButton>
         </Tooltip>
 
-        <Tooltip title="Код">
+        <Tooltip title="Встроенный код">
           <IconButton
             onClick={() => editor.chain().focus().toggleCode().run()}
             color={editor.isActive('code') ? 'primary' : 'default'}
@@ -178,6 +179,17 @@ const VisualToolbar = ({ editor }) => {
             sx={{ width: 32, height: 32 }}
           >
             <Code fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Блок кода">
+          <IconButton
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            color={editor.isActive('codeBlock') ? 'primary' : 'default'}
+            size="small"
+            sx={{ width: 32, height: 32 }}
+          >
+            <CodeOff fontSize="small" />
           </IconButton>
         </Tooltip>
       </ButtonGroup>

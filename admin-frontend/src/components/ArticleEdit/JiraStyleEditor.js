@@ -18,6 +18,7 @@ const JiraStyleEditor = ({ source, label }) => {
   const { editor, setContent } = useTiptapEditor(
     field.value || '', 
     (html) => {
+      console.log('TipTap generated HTML:', html); // ДОБАВИЛИ ОТЛАДКУ
       if (html !== lastContentRef.current) {
         lastContentRef.current = html;
         field.onChange(html);
@@ -39,13 +40,18 @@ const JiraStyleEditor = ({ source, label }) => {
   }, [field.value, editor, viewMode, setContent]);
 
   const handleModeChange = (newMode) => {
+    console.log('Switching mode from', viewMode, 'to', newMode); // ДОБАВИЛИ ОТЛАДКУ
+    console.log('Current HTML content:', field.value); // ДОБАВИЛИ ОТЛАДКУ
+    
     if (newMode === 'text' && viewMode === 'visual') {
       // Конвертируем HTML -> Jira Wiki
       const jiraText = htmlToJira(field.value || '');
+      console.log('Converted Jira text:', jiraText); // ДОБАВИЛИ ОТЛАДКУ
       setJiraText(jiraText);
     } else if (newMode === 'visual' && viewMode === 'text') {
       // Конвертируем Jira Wiki -> HTML
       const html = jiraToHtml(jiraText);
+      console.log('Converted HTML from Jira:', html); // ДОБАВИЛИ ОТЛАДКУ
       if (editor) {
         setContent(html);
       }
@@ -147,6 +153,7 @@ _курсив_
 +подчёркнутый+
 -зачёркнутый-
 {{код}}
+{code}блок кода{code}
 
 h1. Заголовок 1
 * пункт списка
