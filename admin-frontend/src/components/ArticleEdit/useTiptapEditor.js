@@ -3,6 +3,8 @@ import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import CodeBlock from '@tiptap/extension-code-block';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
 import { useCallback, useEffect } from 'react';
 
 // Кастомный CodeBlock который НЕ экранирует HTML
@@ -35,6 +37,18 @@ const useTiptapEditor = (initialContent, onUpdate) => {
         HTMLAttributes: {
           class: 'code-block',
           'data-raw-html': 'true',
+        },
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          style: 'max-width: 100%; height: auto;',
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          target: '_blank',
+          rel: 'noopener noreferrer nofollow',
         },
       }),
     ],

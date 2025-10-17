@@ -13,18 +13,43 @@ const JiraStyleEditor = ({ source, label }) => {
   const [viewMode, setViewMode] = useState('visual');
   const [jiraText, setJiraText] = useState('');
   const lastContentRef = useRef(field.value || '');
+  const editorRef = useRef(null);
   
   // Используем полноценный TipTap редактор с HTML
   const { editor, setContent } = useTiptapEditor(
     field.value || '', 
     (html) => {
-      console.log('TipTap generated HTML:', html); // ДОБАВИЛИ ОТЛАДКУ
+      console.log('TipTap generated HTML:', html);
       if (html !== lastContentRef.current) {
         lastContentRef.current = html;
         field.onChange(html);
       }
     }
   );
+
+  // Сохраняем редактор для доступа из FileUploadSection
+useEffect(() => {
+  console.log('=== DEBUG: Editor initialization ===');
+  console.log('Editor instance:', editor);
+  
+  if (editor) {
+    editorRef.current = editor;
+    window.currentEditor = editor;
+    console.log('✅ Editor saved to window.currentEditor');
+    console.log('Editor state:', editor.state);
+    console.log('Editor is active:', editor.isActive);
+  } else {
+    console.log('❌ Editor is null or undefined');
+  }
+  
+  return () => {
+    // Очищаем при размонтировании
+    if (window.currentEditor === editor) {
+      window.currentEditor = null;
+      console.log('🔄 Editor cleared from window.currentEditor');
+    }
+  };
+}, [editor]);
 
   // Синхронизация при внешних изменениях
   useEffect(() => {
@@ -40,18 +65,18 @@ const JiraStyleEditor = ({ source, label }) => {
   }, [field.value, editor, viewMode, setContent]);
 
   const handleModeChange = (newMode) => {
-    console.log('Switching mode from', viewMode, 'to', newMode); // ДОБАВИЛИ ОТЛАДКУ
-    console.log('Current HTML content:', field.value); // ДОБАВИЛИ ОТЛАДКУ
+    console.log('Switching mode from', viewMode, 'to', newMode);
+    console.log('Current HTML content:', field.value);
     
     if (newMode === 'text' && viewMode === 'visual') {
       // Конвертируем HTML -> Jira Wiki
       const jiraText = htmlToJira(field.value || '');
-      console.log('Converted Jira text:', jiraText); // ДОБАВИЛИ ОТЛАДКУ
+      console.log('Converted Jira text:', jiraText);
       setJiraText(jiraText);
     } else if (newMode === 'visual' && viewMode === 'text') {
       // Конвертируем Jira Wiki -> HTML
       const html = jiraToHtml(jiraText);
-      console.log('Converted HTML from Jira:', html); // ДОБАВИЛИ ОТЛАДКУ
+      console.log('Converted HTML from Jira:', html);
       if (editor) {
         setContent(html);
       }

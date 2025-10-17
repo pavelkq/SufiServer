@@ -38,11 +38,50 @@ const FileUploadSection = () => {
     setUploadProgress({});
   };
 
+// Функция для вставки файла в редактор
+const insertFileIntoEditor = (file, fileUrl) => {
+  console.log('=== DEBUG: Starting file insertion ===');
+  console.log('File:', file.name, 'URL:', fileUrl);
+  console.log('window.currentEditor:', window.currentEditor);
+  console.log('Editor available:', !!window.currentEditor);
+  
+  const editor = window.currentEditor;
+  if (!editor) {
+    console.error('❌ Editor not available!');
+    console.log('All window keys:', Object.keys(window).filter(key => key.toLowerCase().includes('editor')));
+    notify('Редактор не доступен для вставки файла. Убедитесь что редактор загружен.', { type: 'warning' });
+    return;
+  }
+
+  console.log('✅ Editor is available, inserting content...');
+  console.log('Editor commands:', Object.keys(editor.commands).filter(cmd => cmd.includes('insert') || cmd.includes('set')));
+  
+  const fileName = file.name;
+  
+  // Определяем тип файла и вставляем соответствующую разметку
+  if (file.type && file.type.startsWith('image/')) {
+    // Для изображений вставляем HTML img тег
+    const content = `<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; height: auto;" />`;
+    console.log('Inserting image content:', content);
+    editor.commands.insertContent(content);
+    console.log('✅ Изображение вставлено в редактор:', fileName);
+  } else {
+    // Для других файлов вставляем ссылку
+    const content = `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${fileName}</a>`;
+    console.log('Inserting file link content:', content);
+    editor.commands.insertContent(content);
+    console.log('✅ Файл вставлен в редактор:', fileName);
+  }
+  
+  console.log('=== DEBUG: File insertion completed ===');
+};
+
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
 
     setUploading(true);
     const uploadResults = [];
+    const insertedFiles = [];
 
     try {
       for (const file of selectedFiles) {
@@ -71,6 +110,18 @@ const FileUploadSection = () => {
               if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
                 console.log('File uploaded successfully:', response);
+                
+                // Автоматически вставляем файл в редактор после успешной загрузки
+                if (response.files && response.files[0]) {
+                  const uploadedFile = response.files[0];
+                  const fileUrl = `http://188.127.230.92:8090/uploads/articles/${uploadedFile.filename}`;
+                  console.log('=== DEBUG: Before inserting file ===');
+                  console.log('Uploaded file:', uploadedFile);
+                  console.log('File URL:', fileUrl);
+                  insertFileIntoEditor(file, fileUrl);
+                  insertedFiles.push(file.name);
+                }
+                
                 setUploadStatus(prev => ({ ...prev, [file.name]: 'success' }));
                 setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
                 uploadResults.push({ file: file.name, status: 'success' });
@@ -107,12 +158,24 @@ const FileUploadSection = () => {
 
       // Показываем результаты
       const successfulUploads = uploadResults.filter(r => r.status === 'success').length;
+      const insertedCount = insertedFiles.length;
+      
       if (successfulUploads === selectedFiles.length) {
-        notify('Все файлы успешно загружены', { type: 'success' });
+        if (insertedCount > 0) {
+          notify(`Все файлы (${insertedCount}) успешно загружены и вставлены в статью`, { type: 'success' });
+        } else {
+          notify('Все файлы успешно загружены', { type: 'success' });
+        }
       } else if (successfulUploads > 0) {
-        notify(`Успешно загружено ${successfulUploads} из ${selectedFiles.length} файлов`, { 
-          type: 'warning' 
-        });
+        if (insertedCount > 0) {
+          notify(`Успешно загружено ${successfulUploads} из ${selectedFiles.length} файлов, ${insertedCount} вставлено в статью`, { 
+            type: 'warning' 
+          });
+        } else {
+          notify(`Успешно загружено ${successfulUploads} из ${selectedFiles.length} файлов`, { 
+            type: 'warning' 
+          });
+        }
       } else {
         notify('Ошибка при загрузке всех файлов', { type: 'error' });
       }
@@ -183,6 +246,10 @@ const FileUploadSection = () => {
       <Dialog open={uploadDialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>Загрузка файлов</DialogTitle>
         <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Файлы будут автоматически вставлены в статью в месте курсора после загрузки
+          </Typography>
+          
           <input
             type="file"
             multiple
@@ -231,7 +298,8 @@ const FileUploadSection = () => {
                       secondary={
                         <Box sx={{ mt: 1 }}>
                           <Typography variant="caption" display="block">
-                            Размер: {(file.size / 1024).toFixed(1)} KB
+                            Размер: {(file.size / 1024).toFixed(1)} KB • 
+                            Тип: {file.type || 'неизвестен'}
                           </Typography>
                           {uploadStatus[file.name] === 'uploading' && (
                             <LinearProgress 
@@ -262,7 +330,7 @@ const FileUploadSection = () => {
             disabled={selectedFiles.length === 0 || uploading}
             startIcon={uploading ? <CloudUpload /> : null}
           >
-            {uploading ? 'Загрузка...' : 'Загрузить'}
+            {uploading ? 'Загрузка...' : 'Загрузить и вставить'}
           </Button>
         </DialogActions>
       </Dialog>
