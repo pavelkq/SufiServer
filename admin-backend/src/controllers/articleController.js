@@ -1,4 +1,136 @@
 const db = require('../config/dbArticles');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Настройка multer для загрузки файлов
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // ИСПРАВЛЕННЫЙ ПУТЬ - должен совпадать с volume в docker-compose
+    const uploadDir = '/app/uploads/articles';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const fileExt = path.extname(file.originalname);
+    const fileName = path.basename(file.originalname, fileExt).replace(/[^a-zA-Z0-9]/g, '_');
+    cb(null, fileName + '-' + uniqueSuffix + fileExt);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB лимит
+  }
+});
+
+// Методы для управления файлами
+exports.getFilesList = async (req, res) => {
+  try {
+    const uploadDir = '/app/uploads/articles';
+    const files = [];
+    
+    if (fs.existsSync(uploadDir)) {
+      const fileNames = fs.readdirSync(uploadDir);
+      
+      for (const fileName of fileNames) {
+        const filePath = path.join(uploadDir, fileName);
+        const stats = fs.statSync(filePath);
+        
+        files.push({
+          filename: fileName,
+          originalName: fileName, // В реальной системе нужно хранить оригинальные имена
+          size: stats.size,
+          mimetype: getMimeType(fileName),
+          uploadDate: stats.birthtime,
+          url: `/uploads/articles/${fileName}`
+        });
+      }
+    }
+    
+    res.json({ files });
+  } catch (error) {
+    console.error('Error getting files list:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.deleteFile = async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join('/app/uploads/articles', filename);
+    
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      res.json({ message: 'File deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'File not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Вспомогательная функция для определения MIME типа
+function getMimeType(filename) {
+  const ext = path.extname(filename).toLowerCase();
+  const mimeTypes = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.txt': 'text/plain',
+    '.md': 'text/markdown',
+  };
+  return mimeTypes[ext] || 'application/octet-stream';
+}
+
+// Метод для загрузки файлов
+exports.uploadFiles = async (req, res) => {
+  try {
+    // Используем multer middleware для обработки загрузки
+    upload.array('files', 10)(req, res, async function (err) {
+      if (err) {
+        console.error('Upload error:', err);
+        return res.status(400).json({ error: err.message });
+      }
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'No files uploaded' });
+      }
+
+      // Обрабатываем загруженные файлы
+      const uploadedFiles = req.files.map(file => ({
+        filename: file.filename,
+        originalName: file.originalname,
+        size: file.size,
+        mimetype: file.mimetype,
+        path: file.path,
+        url: `/uploads/articles/${file.filename}`
+      }));
+
+      console.log('Successfully uploaded files:', uploadedFiles.map(f => f.originalName));
+      console.log('Files saved to:', req.files.map(f => f.path));
+
+      res.json({
+        message: 'Files uploaded successfully',
+        files: uploadedFiles,
+        total: uploadedFiles.length
+      });
+    });
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 // Методы для статей
 exports.listArticles = async (req, res) => {
@@ -54,7 +186,6 @@ exports.getArticle = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Защита от строковых ID типа "categories"
     if (isNaN(parseInt(id))) {
       return res.status(400).json({ error: 'Invalid article ID' });
     }
@@ -82,10 +213,9 @@ exports.createNewArticle = async (req, res) => {
     const result = await db.query(
       `INSERT INTO articles (title, category_id, group_id, publish_date, markdown_text) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [title, category_id, group_id, publish_date, markdown_text || '']  // Добавили markdown_text
+      [title, category_id, group_id, publish_date, markdown_text || '']
     );
 
-    // Создаем первую версию статьи
     if (markdown_text) {
       await db.query(
         `INSERT INTO article_versions (article_id, markdown_text, html_text) 
@@ -106,7 +236,6 @@ exports.updateArticleHandler = async (req, res) => {
     const { id } = req.params;
     const { title, category_id, group_id, publish_date, markdown_text } = req.body;
 
-    // Проверяем, изменился ли контент для создания новой версии
     if (markdown_text) {
       const currentVersion = await db.query(
         'SELECT markdown_text FROM article_versions WHERE article_id = $1 ORDER BY created_at DESC LIMIT 1',
@@ -114,14 +243,12 @@ exports.updateArticleHandler = async (req, res) => {
       );
 
       if (!currentVersion.rows.length || currentVersion.rows[0].markdown_text !== markdown_text) {
-        // Создаем новую версию
         await db.query(
           `INSERT INTO article_versions (article_id, markdown_text, html_text) 
            VALUES ($1, $2, $3)`,
           [id, markdown_text, markdown_text]
         );
 
-        // Удаляем старые версии (оставляем 3 последние)
         await db.query(
           `DELETE FROM article_versions 
            WHERE article_id = $1 AND id NOT IN (
@@ -135,13 +262,12 @@ exports.updateArticleHandler = async (req, res) => {
       }
     }
 
-    // Обновляем статью (ДОБАВИЛИ markdown_text!)
     const result = await db.query(
       `UPDATE articles 
        SET title = $1, category_id = $2, group_id = $3, publish_date = $4, 
            markdown_text = $5, updated_at = NOW() 
        WHERE id = $6 RETURNING *`,
-      [title, category_id, group_id, publish_date, markdown_text || '', id]  // Добавили markdown_text
+      [title, category_id, group_id, publish_date, markdown_text || '', id]
     );
 
     if (result.rows.length === 0) {
@@ -159,7 +285,6 @@ exports.deleteArticleHandler = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Удаляем связанные данные
     await db.query('DELETE FROM article_tags WHERE article_id = $1', [id]);
     await db.query('DELETE FROM article_versions WHERE article_id = $1', [id]);
     
@@ -184,7 +309,6 @@ exports.listCategories = async (req, res) => {
   try {
     console.log('Fetching categories from database...');
     
-    // Проверим подключение к базе
     try {
       const testResult = await db.query('SELECT NOW() as current_time');
       console.log('Database connection OK:', testResult.rows[0].current_time);
@@ -248,7 +372,6 @@ exports.deleteCategoryHandler = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Проверяем, есть ли статьи в категории
     const articlesCount = await db.query(
       'SELECT COUNT(*) FROM articles WHERE category_id = $1',
       [id]
@@ -331,7 +454,6 @@ exports.deleteTagHandler = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Проверяем, используется ли тег в статьях
     const usageCount = await db.query(
       'SELECT COUNT(*) FROM article_tags WHERE tag_id = $1',
       [id]
@@ -397,18 +519,6 @@ exports.deleteArticleTag = async (req, res) => {
     res.json({ message: 'Tag removed from article' });
   } catch (error) {
     console.error('Error removing tag from article:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Метод для загрузки файлов
-exports.uploadFiles = async (req, res) => {
-  try {
-    // Здесь будет реализация загрузки файлов
-    // Пока возвращаем заглушку
-    res.status(501).json({ error: 'File upload not implemented yet' });
-  } catch (error) {
-    console.error('Error uploading files:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

@@ -30,4 +30,8 @@ router.delete('/article_tags', articleController.deleteArticleTag);
 // Загрузка файлов
 router.post('/upload', articleController.uploadFiles);
 
+// В articleRoutes.js добавляем
+router.get('/files', articleController.getFilesList);
+router.delete('/files/:filename', articleController.deleteFile);
+
 module.exports = router;
