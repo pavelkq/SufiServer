@@ -8,17 +8,22 @@ export const htmlToJira = (html) => {
   
   let jiraText = html;
 
+  // Обрабатываем изображения - ПРОСТАЯ ВЕРСИЯ: игнорируем alt полностью
+  jiraText = jiraText.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, (match, src) => {
+    console.log('Found image:', src);
+    // Только src, без alt!
+    return `!${src}!\n\n`;
+  });
+
   // Обрабатываем блоки кода с сырым HTML
   jiraText = jiraText.replace(/<pre[^>]*data-raw-html[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match, content) => {
     console.log('Found raw HTML code block:', content);
-    // В блоке кода оставляем HTML как есть - НЕ декодируем!
     return `{code}\n${content}\n{code}\n\n`;
   });
 
   // Обычные блоки кода (экранированные)
   jiraText = jiraText.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, (match, content) => {
     console.log('Found regular code block:', content);
-    // Декодируем только обычные блоки кода
     const decodedContent = decodeHtmlEntities(content);
     return `{code}\n${decodedContent}\n{code}\n\n`;
   });
@@ -41,7 +46,7 @@ export const htmlToJira = (html) => {
       const cleanItem = itemContent.replace(/<[^>]*>/g, '').trim();
       return ` * ${cleanItem}\n`;
     });
-    return listItems + '\n';
+    return listItems + '\n\n';
   });
 
   jiraText = jiraText.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, content) => {
@@ -49,7 +54,7 @@ export const htmlToJira = (html) => {
       const cleanItem = itemContent.replace(/<[^>]*>/g, '').trim();
       return ` # ${cleanItem}\n`;
     });
-    return listItems + '\n';
+    return listItems + '\n\n';
   });
 
   // Inline форматирование
@@ -72,10 +77,9 @@ export const htmlToJira = (html) => {
   // Убираем оставшиеся теги
   jiraText = jiraText.replace(/<[^>]*>/g, '');
   
-  // Чистка
-  jiraText = jiraText.replace(/\n\s*\n\s*\n/g, '\n\n');
-  jiraText = jiraText.replace(/^\s+|\s+$/g, '');
+  // Чистка лишних переносов
   jiraText = jiraText.replace(/\n{3,}/g, '\n\n');
+  jiraText = jiraText.replace(/^\s+|\s+$/g, '');
 
   console.log('Final Jira:', jiraText);
   return jiraText.trim();
@@ -95,41 +99,77 @@ export const jiraToHtml = (jiraText) => {
   let codeContent = '';
   let quoteContent = '';
 
-  // Функция для обработки ссылок в тексте - УПРОЩЕННАЯ ВЕРСИЯ
+  // Функция для обработки ссылок в тексте
   const processLinks = (text) => {
-    console.log('Processing links in text:', text);
-    
-    // Упрощенное регулярное выражение для ссылок
     const linkRegex = /\[([^\|\]]+)\|([^\]]+)\]/g;
-    const result = text.replace(linkRegex, 
+    return text.replace(linkRegex, 
       (match, linkText, linkUrl) => {
-        console.log('Found link:', linkText, '->', linkUrl);
         return `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer nofollow">${linkText}</a>`;
       }
     );
-    
-    console.log('After link processing:', result);
-    return result;
   };
 
- // Функция для обработки inline-форматирования - УПРОЩЕННАЯ ВЕРСИЯ
-const processInlineFormatting = (text) => {
-  // Сначала обрабатываем ссылки
-  let processedText = processLinks(text);
-  
-  // Остальное форматирование БЕЗ экранирования HTML
-  processedText = processedText
-    .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
-    .replace(/_([^_]+)_/g, '<em>$1</em>')
-    .replace(/\+([^+]+)\+/g, '<u>$1</u>')
-    .replace(/-([^-]+)-/g, '<s>$1</s>')
-    .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>');
-  
-  return processedText;
-};
+  // Функция для обработки изображений - ПРОСТАЯ ВЕРСИЯ
+  const processImages = (text) => {
+    // Обрабатываем оба формата, но игнорируем alt
+    const imageRegex = /!([^!]+)!/g;
+    let processedText = text.replace(imageRegex,
+      (match, srcWithPossibleAlt) => {
+        console.log('Found image:', srcWithPossibleAlt);
+        // Извлекаем только src (игнорируем часть после | если есть)
+        const src = srcWithPossibleAlt.split('|')[0];
+        const fileName = src.split('/').pop() || 'image';
+        return `<img src="${src}" alt="${fileName}" style="max-width: 100%; height: auto;" />`;
+      }
+    );
+
+    // Также обрабатываем формат с экранированием (на случай если он уже есть)
+    const escapedImageRegex = /!([^|!]+)\|alt=([^!]+)!/g;
+    processedText = processedText.replace(escapedImageRegex,
+      (match, src, alt) => {
+        console.log('Found escaped image:', src);
+        const fileName = src.split('/').pop() || 'image';
+        return `<img src="${src}" alt="${fileName}" style="max-width: 100%; height: auto;" />`;
+      }
+    );
+    
+    return processedText;
+  };
+
+  // Функция для обработки inline-форматирования
+  const processInlineFormatting = (text) => {
+    // Сначала обрабатываем изображения
+    let processedText = processImages(text);
+    // Потом ссылки
+    processedText = processLinks(processedText);
+    
+    // Остальное форматирование
+    processedText = processedText
+      .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      .replace(/\+([^+]+)\+/g, '<u>$1</u>')
+      .replace(/-([^-]+)-/g, '<s>$1</s>')
+      .replace(/\{\{([^}]+)\}\}/g, '<code>$1</code>');
+    
+    return processedText;
+  };
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
+
+    // Пропускаем пустые строки
+    if (!line) {
+      if (inList) {
+        result.push(`</${listType}>`);
+        inList = false;
+      }
+      if (inQuote) {
+        result.push('</blockquote>');
+        inQuote = false;
+      }
+      result.push('');
+      continue;
+    }
 
     // Блоки кода
     if (line === '{code}') {
@@ -154,7 +194,10 @@ const processInlineFormatting = (text) => {
 
     // Цитаты
     if (line === '{quote}') {
-      if (inList) result.push(`</${listType}>`);
+      if (inList) {
+        result.push(`</${listType}>`);
+        inList = false;
+      }
       if (inCodeBlock) inCodeBlock = false;
       inQuote = true;
       quoteContent = '';
@@ -168,17 +211,16 @@ const processInlineFormatting = (text) => {
       continue;
     }
 
-    if (!line) {
-      if (inList) result.push(`</${listType}>`);
-      if (inQuote) result.push('</blockquote>');
-      result.push('');
-      continue;
-    }
-
     // Заголовки
     if (line.match(/^h[1-4]\. /)) {
-      if (inList) result.push(`</${listType}>`);
-      if (inQuote) result.push('</blockquote>');
+      if (inList) {
+        result.push(`</${listType}>`);
+        inList = false;
+      }
+      if (inQuote) {
+        result.push('</blockquote>');
+        inQuote = false;
+      }
       const level = line.match(/^h([1-4])\. /)[1];
       const content = line.replace(/^h[1-4]\. /, '');
       result.push(`<h${level}>${processInlineFormatting(content)}</h${level}>`);
@@ -211,6 +253,22 @@ const processInlineFormatting = (text) => {
       continue;
     }
 
+    // Изображения (отдельная строка начинающаяся с !)
+    if (line.startsWith('!') && line.endsWith('!')) {
+      if (inList) {
+        result.push(`</${listType}>`);
+        inList = false;
+      }
+      if (inQuote) {
+        result.push('</blockquote>');
+        inQuote = false;
+      }
+      // Обрабатываем изображение
+      const imageHtml = processImages(line);
+      result.push(imageHtml);
+      continue;
+    }
+
     // Обычный текст
     if (inList) {
       result.push(`</${listType}>`);
@@ -233,6 +291,9 @@ const processInlineFormatting = (text) => {
   html = html.replace(/<p><\/p>/g, '');
   html = html.replace(/<p><p>/g, '<p>');
   html = html.replace(/<\/p><\/p>/g, '</p>');
+  html = html.replace(/<p><img/g, '<img');
+  html = html.replace(/<\/p><\/img>/g, '</img>');
+  html = html.replace(/<img([^>]*)><\/p>/g, '<img$1>');
 
   console.log('Final HTML:', html);
   return html;

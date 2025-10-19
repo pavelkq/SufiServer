@@ -39,38 +39,35 @@ const FileUploadSection = () => {
   };
 
 // Функция для вставки файла в редактор
+// В FileUploadSection.js в функции insertFileIntoEditor
 const insertFileIntoEditor = (file, fileUrl) => {
   console.log('=== DEBUG: Starting file insertion ===');
   console.log('File:', file.name, 'URL:', fileUrl);
-  console.log('window.currentEditor:', window.currentEditor);
-  console.log('Editor available:', !!window.currentEditor);
   
   const editor = window.currentEditor;
   if (!editor) {
     console.error('❌ Editor not available!');
-    console.log('All window keys:', Object.keys(window).filter(key => key.toLowerCase().includes('editor')));
     notify('Редактор не доступен для вставки файла. Убедитесь что редактор загружен.', { type: 'warning' });
     return;
   }
 
   console.log('✅ Editor is available, inserting content...');
-  console.log('Editor commands:', Object.keys(editor.commands).filter(cmd => cmd.includes('insert') || cmd.includes('set')));
   
-  const fileName = file.name;
+  // Создаем безопасное имя файла для alt (заменяем тире на подчеркивания)
+  const safeAlt = file.name.replace(/-/g, '_').replace(/\.(jpg|jpeg|png|gif)$/i, '');
   
-  // Определяем тип файла и вставляем соответствующую разметку
   if (file.type && file.type.startsWith('image/')) {
-    // Для изображений вставляем HTML img тег
-    const content = `<img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; height: auto;" />`;
+    // Для изображений вставляем с безопасным alt
+    const content = `<img src="${fileUrl}" alt="${safeAlt}" style="max-width: 100%; height: auto;" />`;
     console.log('Inserting image content:', content);
     editor.commands.insertContent(content);
-    console.log('✅ Изображение вставлено в редактор:', fileName);
+    console.log('✅ Изображение вставлено в редактор:', file.name);
   } else {
     // Для других файлов вставляем ссылку
-    const content = `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${fileName}</a>`;
+    const content = `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${file.name}</a>`;
     console.log('Inserting file link content:', content);
     editor.commands.insertContent(content);
-    console.log('✅ Файл вставлен в редактор:', fileName);
+    console.log('✅ Файл вставлен в редактор:', file.name);
   }
   
   console.log('=== DEBUG: File insertion completed ===');
