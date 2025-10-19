@@ -17,8 +17,9 @@ app.use(cors({
   exposedHeaders: ['Content-Range'], // Чтобы фронтенд видел заголовок Content-Range
 }));
 
-// Парсинг JSON в теле запросов
-app.use(express.json());
+// Парсинг JSON в теле запросов с увеличенным лимитом
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Статическая раздача загруженных файлов статей (путь должен совпадать с путём в articleController)
 app.use('/uploads/articles', express.static(path.join(__dirname, '../../uploads/articles')));
