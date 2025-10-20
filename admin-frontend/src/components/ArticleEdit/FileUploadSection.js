@@ -1,4 +1,3 @@
-// admin-frontend/src/components/ArticleEdit/FileUploadSection.js
 import React, { useState } from 'react';
 import {
   Box,
@@ -59,9 +58,9 @@ const FileUploadSection = () => {
   };
 
   // Функция для вставки файла в редактор
-  const insertFileIntoEditor = (file, fileUrl) => {
+  const insertFileIntoEditor = (file, fileInfo) => {
     console.log('=== DEBUG: Starting file insertion ===');
-    console.log('File:', file.name, 'URL:', fileUrl);
+    console.log('File:', file.name, 'File info:', fileInfo);
     
     const editor = window.currentEditor;
     if (!editor) {
@@ -72,19 +71,21 @@ const FileUploadSection = () => {
 
     console.log('✅ Editor is available, inserting content...');
     
-    // Создаем безопасное имя файла для alt (заменяем тире на подчеркивания)
-    const safeAlt = file.name.replace(/-/g, '_').replace(/\.(jpg|jpeg|png|gif)$/i, '');
+    // Используем оптимизированную версию для вставки в статью
+    const fileUrl = `http://188.127.230.92:8090/uploads/articles/${fileInfo.optimized}`;
+    const safeAlt = file.name.replace(/-/g, '_').replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
     
     if (file.type && file.type.startsWith('image/')) {
-      // Для изображений вставляем с безопасным alt
+      // Для изображений вставляем оптимизированную версию
       const content = `<img src="${fileUrl}" alt="${safeAlt}" style="max-width: 100%; height: auto;" />`;
-      console.log('Inserting image content:', content);
+      console.log('Inserting optimized image:', content);
       editor.commands.insertContent(content);
-      console.log('✅ Изображение вставлено в редактор:', file.name);
+      console.log('✅ Оптимизированное изображение вставлено в редактор:', file.name);
     } else {
-      // Для других файлов вставляем ссылку
-      const content = `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${file.name}</a>`;
-      console.log('Inserting file link content:', content);
+      // Для других файлов вставляем ссылку на оригинал
+      const originalUrl = `http://188.127.230.92:8090/uploads/articles/${fileInfo.original}`;
+      const content = `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">${file.name}</a>`;
+      console.log('Inserting file link:', content);
       editor.commands.insertContent(content);
       console.log('✅ Файл вставлен в редактор:', file.name);
     }
@@ -113,7 +114,6 @@ const FileUploadSection = () => {
           const formData = new FormData();
           formData.append('files', file);
 
-          // Используем fetch вместо XMLHttpRequest чтобы избежать проблем с иконками
           const response = await fetch('http://188.127.230.92:8090/api/admin-backend/articles/upload', {
             method: 'POST',
             body: formData,
@@ -136,13 +136,12 @@ const FileUploadSection = () => {
           }
 
           const result = await response.json();
-          console.log('File uploaded successfully:', result);
+          console.log('File uploaded and optimized successfully:', result);
           
           // Автоматически вставляем файл в редактор после успешной загрузки
           if (result.files && result.files[0]) {
-            const uploadedFile = result.files[0];
-            const fileUrl = `http://188.127.230.92:8090/uploads/articles/${uploadedFile.filename}`;
-            insertFileIntoEditor(file, fileUrl);
+            const uploadedFileInfo = result.files[0];
+            insertFileIntoEditor(file, uploadedFileInfo);
             insertedFiles.push(file.name);
           }
           
@@ -167,9 +166,9 @@ const FileUploadSection = () => {
       
       if (successfulUploads === selectedFiles.length) {
         if (insertedCount > 0) {
-          notify(`Все файлы (${insertedCount}) успешно загружены и вставлены в статью`, { type: 'success' });
+          notify(`Все файлы (${insertedCount}) успешно загружены, оптимизированы и вставлены в статью`, { type: 'success' });
         } else {
-          notify('Все файлы успешно загружены', { type: 'success' });
+          notify('Все файлы успешно загружены и оптимизированы', { type: 'success' });
         }
       } else if (successfulUploads > 0) {
         if (insertedCount > 0) {
@@ -263,7 +262,9 @@ const FileUploadSection = () => {
         <DialogTitle>Загрузка файлов</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Файлы будут автоматически вставлены в статью в месте курсора после загрузки. Максимальный размер: 50MB
+            Файлы будут автоматически оптимизированы и вставлены в статью. 
+            Изображения сжимаются до 1200px с сохранением качества.
+            Максимальный размер: 50MB
           </Typography>
           
           <input
@@ -346,7 +347,7 @@ const FileUploadSection = () => {
             disabled={selectedFiles.length === 0 || uploading}
             startIcon={uploading ? <UploadIcon /> : null}
           >
-            {uploading ? 'Загрузка...' : 'Загрузить и вставить'}
+            {uploading ? 'Загрузка и оптимизация...' : 'Загрузить и оптимизировать'}
           </Button>
         </DialogActions>
       </Dialog>
