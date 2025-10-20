@@ -1,44 +1,19 @@
-// admin-frontend/src/components/ArticleEdit/useTiptapEditor.js
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
-import CodeBlock from '@tiptap/extension-code-block';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import { useCallback, useEffect } from 'react';
-
-// Кастомный CodeBlock который НЕ экранирует HTML
-const CustomCodeBlock = CodeBlock.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      // Отключаем автоматическое экранирование HTML
-      HTMLAttributes: {
-        ...this.parent?.().HTMLAttributes,
-        'data-raw-html': true,
-      },
-    };
-  },
-});
 
 const useTiptapEditor = (initialContent, onUpdate) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        codeBlock: {
-          HTMLAttributes: {
-            class: 'code-block',
-            'data-raw-html': 'true', // Флаг что это сырой HTML
-          },
-        },
+        // Отключаем встроенные расширения которые будем настраивать отдельно
+        underline: false,
+        link: false,
       }),
       Underline,
-      CustomCodeBlock.configure({
-        HTMLAttributes: {
-          class: 'code-block',
-          'data-raw-html': 'true',
-        },
-      }),
       Image.configure({
         HTMLAttributes: {
           style: 'max-width: 100%; height: auto;',

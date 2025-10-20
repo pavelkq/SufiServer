@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const articleController = require('../controllers/articleController');
+const fileController = require('../controllers/fileController');
 
-// Сначала специфичные роуты, потом общие
 // Категории
 router.get('/categories', articleController.listCategories);
 router.post('/categories', articleController.createNewCategory);
@@ -28,10 +28,9 @@ router.post('/article_tags', articleController.createArticleTag);
 router.delete('/article_tags', articleController.deleteArticleTag);
 
 // Загрузка файлов
-router.post('/upload', articleController.uploadFiles);
+router.post('/upload', fileController.uploadFiles);
+router.get('/files', fileController.getFilesList);
+router.delete('/files/:filename', fileController.deleteFile);
 
-// В articleRoutes.js добавляем
-router.get('/files', articleController.getFilesList);
-router.delete('/files/:filename', articleController.deleteFile);
-
+console.log('✅ Article routes configured successfully');
 module.exports = router;

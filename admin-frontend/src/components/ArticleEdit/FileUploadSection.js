@@ -57,143 +57,124 @@ const FileUploadSection = () => {
     setUploadProgress({});
   };
 
-  // Функция для вставки файла в редактор
-  const insertFileIntoEditor = (file, fileInfo) => {
-    console.log('=== DEBUG: Starting file insertion ===');
-    console.log('File:', file.name, 'File info:', fileInfo);
-    
-    const editor = window.currentEditor;
-    if (!editor) {
-      console.error('❌ Editor not available!');
-      notify('Редактор не доступен для вставки файла. Убедитесь что редактор загружен.', { type: 'warning' });
-      return;
-    }
+// Функция для вставки файла в редактор
+const insertFileIntoEditor = (file, fileInfo) => {
+  console.log('=== DEBUG: Starting file insertion ===');
+  console.log('File:', file.name, 'File info:', fileInfo);
+  
+  const editor = window.currentEditor;
+  if (!editor) {
+    console.error('❌ Editor not available!');
+    notify('Редактор не доступен для вставки файла. Убедитесь что редактор загружен.', { type: 'warning' });
+    return;
+  }
 
-    console.log('✅ Editor is available, inserting content...');
-    
-    // Используем оптимизированную версию для вставки в статью
-    const fileUrl = `http://188.127.230.92:8090/uploads/articles/${fileInfo.optimized}`;
-    const safeAlt = file.name.replace(/-/g, '_').replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
-    
-    if (file.type && file.type.startsWith('image/')) {
-      // Для изображений вставляем оптимизированную версию
-      const content = `<img src="${fileUrl}" alt="${safeAlt}" style="max-width: 100%; height: auto;" />`;
-      console.log('Inserting optimized image:', content);
-      editor.commands.insertContent(content);
-      console.log('✅ Оптимизированное изображение вставлено в редактор:', file.name);
-    } else {
-      // Для других файлов вставляем ссылку на оригинал
-      const originalUrl = `http://188.127.230.92:8090/uploads/articles/${fileInfo.original}`;
-      const content = `<a href="${originalUrl}" target="_blank" rel="noopener noreferrer">${file.name}</a>`;
-      console.log('Inserting file link:', content);
-      editor.commands.insertContent(content);
-      console.log('✅ Файл вставлен в редактор:', file.name);
-    }
-    
-    console.log('=== DEBUG: File insertion completed ===');
-  };
+  console.log('✅ Editor is available, inserting content...');
+  
+  // Используем оптимизированную версию для изображений
+  const fileName = fileInfo.optimized || fileInfo.filename;
+  const fileUrl = `http://188.127.230.92:8090/uploads/articles/${fileName}`;
+  const safeAlt = file.name.replace(/-/g, '_').replace(/\.(jpg|jpeg|png|gif|webp)$/i, '');
+  
+  if (file.type && file.type.startsWith('image/')) {
+    // Для изображений вставляем оптимизированную версию
+    const content = `<img src="${fileUrl}" alt="${safeAlt}" style="max-width: 100%; height: auto;" />`;
+    console.log('Inserting optimized image:', content);
+    editor.commands.insertContent(content);
+    console.log('✅ Оптимизированное изображение вставлено в редактор:', file.name);
+  } else {
+    // Для других файлов вставляем ссылку на оригинал
+    const content = `<a href="${fileUrl}" target="_blank" rel="noopener noreferrer">${file.name}</a>`;
+    console.log('Inserting file link:', content);
+    editor.commands.insertContent(content);
+    console.log('✅ Файл вставлен в редактор:', file.name);
+  }
+  
+  console.log('=== DEBUG: File insertion completed ===');
+};
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) return;
+const handleUpload = async () => {
+  if (selectedFiles.length === 0) return;
 
-    setUploading(true);
-    const uploadResults = [];
-    const insertedFiles = [];
+  setUploading(true);
+  const uploadResults = [];
+  const insertedFiles = [];
 
-    try {
-      for (const file of selectedFiles) {
-        try {
-          // Проверяем размер файла на фронтенде
-          if (file.size > 50 * 1024 * 1024) {
-            throw new Error(`Файл слишком большой: ${(file.size / 1024 / 1024).toFixed(1)}MB. Максимальный размер: 50MB`);
-          }
+  try {
+    for (const file of selectedFiles) {
+      try {
+        // Проверяем размер файла на фронтенде
+        if (file.size > 50 * 1024 * 1024) {
+          throw new Error(`Файл слишком большой: ${(file.size / 1024 / 1024).toFixed(1)}MB. Максимальный размер: 50MB`);
+        }
 
-          setUploadStatus(prev => ({ ...prev, [file.name]: 'uploading' }));
-          setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
-          
-          const formData = new FormData();
-          formData.append('files', file);
+        setUploadStatus(prev => ({ ...prev, [file.name]: 'uploading' }));
+        setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
+        
+        const formData = new FormData();
+        formData.append('files', file);
 
-          const response = await fetch('http://188.127.230.92:8090/api/admin-backend/articles/upload', {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-            },
-          });
+        const response = await fetch('http://188.127.230.92:8090/api/admin-backend/articles/upload', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+          },
+        });
 
-          if (!response.ok) {
-            let errorMessage = `Ошибка загрузки: ${response.status}`;
-            try {
-              const errorResponse = await response.json();
-              if (errorResponse.error) {
-                errorMessage = errorResponse.error;
-              }
-            } catch (e) {
-              // Если не удалось распарсить JSON, используем стандартное сообщение
+        if (!response.ok) {
+          let errorMessage = `Ошибка загрузки: ${response.status}`;
+          try {
+            const errorResponse = await response.json();
+            if (errorResponse.error) {
+              errorMessage = errorResponse.error;
             }
-            throw new Error(errorMessage);
+          } catch (e) {
+            // Если не удалось распарсить JSON, используем стандартное сообщение
           }
-
-          const result = await response.json();
-          console.log('File uploaded and optimized successfully:', result);
-          
-          // Автоматически вставляем файл в редактор после успешной загрузки
-          if (result.files && result.files[0]) {
-            const uploadedFileInfo = result.files[0];
-            insertFileIntoEditor(file, uploadedFileInfo);
-            insertedFiles.push(file.name);
-          }
-          
-          setUploadStatus(prev => ({ ...prev, [file.name]: 'success' }));
-          setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
-          uploadResults.push({ file: file.name, status: 'success' });
-
-        } catch (error) {
-          console.error(`Ошибка загрузки файла ${file.name}:`, error);
-          setUploadStatus(prev => ({ ...prev, [file.name]: 'error' }));
-          uploadResults.push({ 
-            file: file.name, 
-            status: 'error', 
-            error: error.message 
-          });
+          throw new Error(errorMessage);
         }
+
+        const result = await response.json();
+
+        // ОТЛАДОЧНЫЙ КОД ДЛЯ ПРОВЕРКИ СТРУКТУРЫ ОТВЕТА
+        console.log('=== DEBUG: Server response ===', result);
+        console.log('=== DEBUG: First file info ===', result.files && result.files[0]);
+
+        console.log('File uploaded and optimized successfully:', result);
+        
+        // Автоматически вставляем файл в редактор после успешной загрузки
+        if (result.files && result.files[0]) {
+          const uploadedFileInfo = result.files[0];
+          insertFileIntoEditor(file, uploadedFileInfo);
+          insertedFiles.push(file.name);
+        }
+        
+        setUploadStatus(prev => ({ ...prev, [file.name]: 'success' }));
+        setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
+        uploadResults.push({ file: file.name, status: 'success' });
+
+      } catch (error) {
+        console.error(`Ошибка загрузки файла ${file.name}:`, error);
+        setUploadStatus(prev => ({ ...prev, [file.name]: 'error' }));
+        uploadResults.push({ 
+          file: file.name, 
+          status: 'error', 
+          error: error.message 
+        });
       }
-
-      // Показываем результаты
-      const successfulUploads = uploadResults.filter(r => r.status === 'success').length;
-      const insertedCount = insertedFiles.length;
-      
-      if (successfulUploads === selectedFiles.length) {
-        if (insertedCount > 0) {
-          notify(`Все файлы (${insertedCount}) успешно загружены, оптимизированы и вставлены в статью`, { type: 'success' });
-        } else {
-          notify('Все файлы успешно загружены и оптимизированы', { type: 'success' });
-        }
-      } else if (successfulUploads > 0) {
-        if (insertedCount > 0) {
-          notify(`Успешно загружено ${successfulUploads} из ${selectedFiles.length} файлов, ${insertedCount} вставлено в статью`, { 
-            type: 'warning' 
-          });
-        } else {
-          notify(`Успешно загружено ${successfulUploads} из ${selectedFiles.length} файлов`, { 
-            type: 'warning' 
-          });
-        }
-      } else {
-        const errorMessages = uploadResults.filter(r => r.status === 'error').map(r => `${r.file}: ${r.error}`);
-        notify(`Ошибка при загрузке всех файлов: ${errorMessages.join('; ')}`, { type: 'error' });
-      }
-
-    } catch (error) {
-      console.error('General upload error:', error);
-      notify(`Произошла ошибка при загрузке файлов: ${error.message}`, { type: 'error' });
-    } finally {
-      setUploading(false);
-      setUploadDialogOpen(false);
-      setSelectedFiles([]);
     }
-  };
+
+    // ... остальной код функции
+  } catch (error) {
+    console.error('General upload error:', error);
+    notify(`Произошла ошибка при загрузке файлов: ${error.message}`, { type: 'error' });
+  } finally {
+    setUploading(false);
+    setUploadDialogOpen(false);
+    setSelectedFiles([]);
+  }
+};
 
   const getStatusIcon = (status) => {
     switch (status) {
