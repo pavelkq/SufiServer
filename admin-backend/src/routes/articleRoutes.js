@@ -32,5 +32,4 @@ router.post('/upload', fileController.uploadFiles);
 router.get('/files', fileController.getFilesList);
 router.delete('/files/:filename', fileController.deleteFile);
 
-console.log('✅ Article routes configured successfully');
 module.exports = router;
