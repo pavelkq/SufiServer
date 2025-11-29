@@ -3,19 +3,20 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import TextAlign from '@tiptap/extension-text-align';
 import { useCallback, useEffect } from 'react';
 
 const useTiptapEditor = (initialContent, onUpdate) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // Отключаем встроенные расширения которые будем настраивать отдельно
         underline: false,
         link: false,
       }),
       Underline,
       Image.configure({
         HTMLAttributes: {
+          class: 'tiptap-image',
           style: 'max-width: 100%; height: auto;',
         },
       }),
@@ -25,6 +26,10 @@ const useTiptapEditor = (initialContent, onUpdate) => {
           target: '_blank',
           rel: 'noopener noreferrer nofollow',
         },
+      }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
       }),
     ],
     content: initialContent,

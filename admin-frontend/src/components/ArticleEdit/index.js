@@ -14,7 +14,7 @@ import {
 import { Box, Grid, Dialog, DialogTitle, DialogContent, DialogActions, Typography, Button } from '@mui/material';
 import { Save, Cancel, Delete } from '@mui/icons-material';
 
-import JiraStyleEditor from './JiraStyleEditor';
+import SimpleVisualEditor from './SimpleVisualEditor';
 import FileUploadSection from './FileUploadSection';
 import TagsSection from './TagsSection';
 import useArticleSave from './useArticleSave';
@@ -65,7 +65,7 @@ const ArticleEdit = (props) => {
         <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
             <TextInput source="title" label="Название" fullWidth disabled={loading} />
-            <JiraStyleEditor source="markdown_text" label="Текст статьи" />
+            <SimpleVisualEditor source="markdown_text" label="Текст статьи" />
             <FileUploadSection />
           </Grid>
 

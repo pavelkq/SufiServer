@@ -20,6 +20,10 @@ import {
   FormatListNumbered,
   Link,
   FormatClear,
+  FormatAlignLeft,
+  FormatAlignCenter,
+  FormatAlignRight,
+  FormatAlignJustify,
 } from '@mui/icons-material';
 
 const HEADING_OPTIONS = [
@@ -32,7 +36,7 @@ const HEADING_OPTIONS = [
   { value: '6', label: 'Заголовок 6' },
 ];
 
-const VisualToolbar = ({ editor }) => {
+const VisualToolbar = ({ editor, alignImage }) => {
   if (!editor) return null;
 
   const setHeading = (level) => {
@@ -135,6 +139,53 @@ const VisualToolbar = ({ editor }) => {
           </IconButton>
         </Tooltip>
       </ButtonGroup>
+
+<ButtonGroup size="small" sx={{ mr: 1 }}>
+  {/* Выравнивание текста */}
+  <Tooltip title="По левому краю">
+    <IconButton
+      onClick={() => editor.chain().focus().setTextAlign('left').run()}
+      color={editor.isActive({ textAlign: 'left' }) ? 'primary' : 'default'}
+      size="small"
+      sx={{ width: 32, height: 32 }}
+    >
+      <FormatAlignLeft fontSize="small" />
+    </IconButton>
+  </Tooltip>
+
+  <Tooltip title="По центру">
+    <IconButton
+      onClick={() => editor.chain().focus().setTextAlign('center').run()}
+      color={editor.isActive({ textAlign: 'center' }) ? 'primary' : 'default'}
+      size="small"
+      sx={{ width: 32, height: 32 }}
+    >
+      <FormatAlignCenter fontSize="small" />
+    </IconButton>
+  </Tooltip>
+
+  <Tooltip title="По правому краю">
+    <IconButton
+      onClick={() => editor.chain().focus().setTextAlign('right').run()}
+      color={editor.isActive({ textAlign: 'right' }) ? 'primary' : 'default'}
+      size="small"
+      sx={{ width: 32, height: 32 }}
+    >
+      <FormatAlignRight fontSize="small" />
+    </IconButton>
+  </Tooltip>
+
+  <Tooltip title="По ширине">
+    <IconButton
+      onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+      color={editor.isActive({ textAlign: 'justify' }) ? 'primary' : 'default'}
+      size="small"
+      sx={{ width: 32, height: 32 }}
+    >
+      <FormatAlignJustify fontSize="small" />
+    </IconButton>
+  </Tooltip>
+</ButtonGroup>
 
       <ButtonGroup size="small" sx={{ mr: 1 }}>
         {/* Списки и цитаты */}
