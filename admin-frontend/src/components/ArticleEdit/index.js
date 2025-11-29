@@ -27,11 +27,13 @@ const ArticleEdit = (props) => {
   // Загружаем справочные данные
   const { data: groups, isLoading: groupsLoading } = useGetList('groups');
   const { data: categories, isLoading: categoriesLoading } = useGetList('categories');
+  const { data: tags, isLoading: tagsLoading } = useGetList('tags'); // Добавляем загрузку тем
 
   // Вызываем useArticleSave безусловно
   const { selectedTags, loading, handleSave, handleDelete, handleTagToggle } = useArticleSave(record, false, redirect);
 
-  if (isLoading || groupsLoading || categoriesLoading) {
+  // Показываем загрузку если грузятся любые данные
+  if (isLoading || groupsLoading || categoriesLoading || tagsLoading) {
     return <Loading />;
   }
 
@@ -75,12 +77,12 @@ const ArticleEdit = (props) => {
                 source="category_id"
                 label="Категория"
                 fullWidth
-                choices={categories.map(c => ({ id: c.id, name: c.name }))}
+                choices={categories?.map(c => ({ id: c.id, name: c.name })) || []}
                 disabled={loading}
               />
 
               <TagsSection
-                tags={[]} // подгрузите аналогично если нужно
+                tags={tags || []} // Теперь передаем загруженные темы
                 selectedTags={selectedTags}
                 onTagToggle={handleTagToggle}
                 loading={loading}
@@ -91,7 +93,7 @@ const ArticleEdit = (props) => {
                 label="Группа доступа"
                 fullWidth
                 sx={{ mt: 2 }}
-                choices={groups.map(g => ({ id: g.id, name: g.name }))}
+                choices={groups?.map(g => ({ id: g.id, name: g.name })) || []}
                 disabled={loading}
               />
 
