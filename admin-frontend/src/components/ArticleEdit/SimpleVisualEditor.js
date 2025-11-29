@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useInput } from 'react-admin';
 import VisualToolbar from './VisualToolbar';
@@ -15,6 +15,29 @@ const SimpleVisualEditor = ({ source, label }) => {
       field.onChange(html);
     }
   );
+
+  // Сохраняем редактор для доступа из FileUploadSection
+  useEffect(() => {
+    console.log('=== DEBUG: Editor initialization ===');
+    console.log('Editor instance:', editor);
+    
+    if (editor) {
+      window.currentEditor = editor;
+      console.log('✅ Editor saved to window.currentEditor');
+      console.log('Editor state:', editor.state);
+      console.log('Editor is active:', editor.isActive);
+    } else {
+      console.log('❌ Editor is null or undefined');
+    }
+    
+    return () => {
+      // Очищаем при размонтировании
+      if (window.currentEditor === editor) {
+        window.currentEditor = null;
+        console.log('🔄 Editor cleared from window.currentEditor');
+      }
+    };
+  }, [editor]);
 
   return (
     <Box sx={{ mb: 4 }}>

@@ -12,7 +12,7 @@ import {
 import { Box, Grid, Button } from '@mui/material';
 import { Save, Cancel } from '@mui/icons-material';
 
-import JiraStyleEditor from './ArticleEdit/JiraStyleEditor';
+import SimpleVisualEditor from './ArticleEdit/SimpleVisualEditor';
 import FileUploadSection from './ArticleEdit/FileUploadSection';
 import TagsSection from './ArticleEdit/TagsSection';
 import useArticleSave from './ArticleEdit/useArticleSave';
@@ -60,7 +60,7 @@ const ArticleCreate = (props) => {
               fullWidth 
               disabled={loading}
             />
-            <JiraStyleEditor 
+            <SimpleVisualEditor 
               source="markdown_text" 
               label="Текст статьи" 
             />

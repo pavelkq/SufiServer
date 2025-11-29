@@ -1,4 +1,9 @@
 import { useEditor } from '@tiptap/react';
+import Document from '@tiptap/extension-document';
+import Text from '@tiptap/extension-text';
+import Paragraph from '@tiptap/extension-paragraph';
+import Dropcursor from '@tiptap/extension-dropcursor';
+import Gapcursor from '@tiptap/extension-gapcursor';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
@@ -6,19 +11,65 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import { useCallback, useEffect } from 'react';
 
+// Кастомное расширение для изображений с поддержкой выравнивания
+const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: element => element.getAttribute('style'),
+        renderHTML: attributes => {
+          if (!attributes.style) {
+            return {};
+          }
+          return {
+            style: attributes.style
+          };
+        },
+      },
+      class: {
+        default: 'tiptap-image',
+        parseHTML: element => element.getAttribute('class'),
+        renderHTML: attributes => {
+          return {
+            class: attributes.class
+          };
+        },
+      },
+    };
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['img', HTMLAttributes];
+  },
+});
+
 const useTiptapEditor = (initialContent, onUpdate) => {
   const editor = useEditor({
     extensions: [
+      Document,
+      Text,
+      Paragraph,
+      Dropcursor,
+      Gapcursor,
+      
       StarterKit.configure({
+        document: false,
+        text: false,  
+        paragraph: false,
+        dropcursor: false,
+        gapcursor: false,
         underline: false,
         link: false,
       }),
       Underline,
-      Image.configure({
+      CustomImage.configure({
         HTMLAttributes: {
           class: 'tiptap-image',
-          style: 'max-width: 100%; height: auto;',
         },
+        inline: true,
+        allowBase64: true,
       }),
       Link.configure({
         openOnClick: false,
@@ -28,7 +79,7 @@ const useTiptapEditor = (initialContent, onUpdate) => {
         },
       }),
       TextAlign.configure({
-        types: ['heading', 'paragraph'],
+        types: ['heading', 'paragraph', 'image'],
         alignments: ['left', 'center', 'right', 'justify'],
       }),
     ],
@@ -37,6 +88,11 @@ const useTiptapEditor = (initialContent, onUpdate) => {
       if (onUpdate) {
         onUpdate(editor.getHTML());
       }
+    },
+    editorProps: {
+      attributes: {
+        class: 'tiptap',
+      },
     },
   });
 
