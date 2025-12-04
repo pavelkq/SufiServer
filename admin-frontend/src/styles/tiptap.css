@@ -272,3 +272,144 @@
   outline: 2px solid #1976d2;
   outline-offset: 2px;
 }
+
+/* ============================================ */
+/* СТИЛИ ДЛЯ ТАБЛИЦ (ОСНОВНЫЕ)                */
+/* ============================================ */
+
+/* Базовые стили таблицы */
+.ProseMirror .tiptap-table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+/* Ячейки таблицы с ВИДИМЫМИ ПУНКТИРНЫМИ границами */
+.ProseMirror .tiptap-table td,
+.ProseMirror .tiptap-table th {
+  border: 1px dashed #666; /* Пунктир серого цвета */
+  box-sizing: border-box;
+  min-width: 80px;
+  padding: 8px 12px;
+  position: relative;
+  vertical-align: top;
+  background-color: #fff;
+}
+
+/* Заголовки таблицы */
+.ProseMirror .tiptap-table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+  text-align: left;
+  border: 1px dashed #777; /* Заголовки чуть темнее */
+}
+
+/* Подсветка выбранной ячейки */
+.ProseMirror .tiptap-table .selectedCell:after {
+  background: rgba(66, 133, 244, 0.3); /* Голубая подсветка */
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+/* При наведении на ячейку */
+.ProseMirror .tiptap-table td:hover,
+.ProseMirror .tiptap-table th:hover {
+  background-color: #f9f9f9;
+}
+
+/* ============================================ */
+/* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ (МОДИФИКАТОРЫ)        */
+/* ============================================ */
+
+/* Таблица с ЖИРНЫМИ границами */
+.ProseMirror .tiptap-table.table-bordered {
+  border: 2px solid #333;
+}
+
+.ProseMirror .tiptap-table.table-bordered td,
+.ProseMirror .tiptap-table.table-bordered th {
+  border: 1px solid #666;
+}
+
+/* Таблица БЕЗ границ (для разметки) */
+.ProseMirror .tiptap-table.table-borderless {
+  border: none;
+}
+
+.ProseMirror .tiptap-table.table-borderless td,
+.ProseMirror .tiptap-table.table-borderless th {
+  border: none;
+  padding: 12px 16px;
+}
+
+/* Стильная таблица для разметки (с фоном, без границ) */
+.ProseMirror .tiptap-table.table-layout {
+  border: none;
+  background: transparent;
+}
+
+.ProseMirror .tiptap-table.table-layout td,
+.ProseMirror .tiptap-table.table-layout th {
+  border: none;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.ProseMirror .tiptap-table.table-layout th {
+  background: #e9ecef;
+  font-weight: 600;
+}
+
+/* Чередующиеся строки (зебра) */
+.ProseMirror .tiptap-table.table-striped tbody tr:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+.ProseMirror .tiptap-table.table-striped.table-borderless tbody tr:nth-child(odd) {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* Ховер эффекты */
+.ProseMirror .tiptap-table.table-hover tbody tr:hover {
+  background-color: #e3f2fd;
+}
+
+/* Responsive таблицы */
+.ProseMirror .table-responsive {
+  overflow-x: auto;
+}
+
+/* Классы для выравнивания содержимого в таблицах */
+.ProseMirror .tiptap-table .text-center {
+  text-align: center;
+}
+
+.ProseMirror .tiptap-table .text-left {
+  text-align: left;
+}
+
+.ProseMirror .tiptap-table .text-right {
+  text-align: right;
+}
+
+.ProseMirror .tiptap-table .vertical-top {
+  vertical-align: top;
+}
+
+.ProseMirror .tiptap-table .vertical-middle {
+  vertical-align: middle;
+}
+
+.ProseMirror .tiptap-table .vertical-bottom {
+  vertical-align: bottom;
+}

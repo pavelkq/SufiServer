@@ -9,6 +9,10 @@ import Underline from '@tiptap/extension-underline';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import { useCallback, useEffect } from 'react';
 
 // Кастомное расширение для изображений с поддержкой выравнивания
@@ -42,6 +46,48 @@ const CustomImage = Image.extend({
 
   renderHTML({ HTMLAttributes }) {
     return ['img', HTMLAttributes];
+  },
+});
+
+// Кастомное расширение для таблиц
+const CustomTable = Table.configure({
+  HTMLAttributes: {
+    class: 'tiptap-table',
+  },
+  resizable: true,
+});
+
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      class: {
+        default: 'tiptap-table-cell',
+        parseHTML: element => element.getAttribute('class'),
+        renderHTML: attributes => {
+          return {
+            class: attributes.class
+          };
+        },
+      },
+    };
+  },
+});
+
+const CustomTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      class: {
+        default: 'tiptap-table-header',
+        parseHTML: element => element.getAttribute('class'),
+        renderHTML: attributes => {
+          return {
+            class: attributes.class
+          };
+        },
+      },
+    };
   },
 });
 
@@ -82,6 +128,15 @@ const useTiptapEditor = (initialContent, onUpdate) => {
         types: ['heading', 'paragraph', 'image'],
         alignments: ['left', 'center', 'right', 'justify'],
       }),
+      // Таблицы
+      CustomTable,
+      TableRow.configure({
+        HTMLAttributes: {
+          class: 'tiptap-table-row',
+        },
+      }),
+      CustomTableHeader,
+      CustomTableCell,
     ],
     content: initialContent,
     onUpdate: ({ editor }) => {

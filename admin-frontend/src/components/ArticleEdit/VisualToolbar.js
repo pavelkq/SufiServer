@@ -1,4 +1,3 @@
-// admin-frontend/src/components/ArticleEdit/VisualToolbar.js
 import React from 'react';
 import {
   Box,
@@ -7,25 +6,23 @@ import {
   Select,
   MenuItem,
   ButtonGroup,
+  Divider,
 } from '@mui/material';
 import {
-  FormatBold,
-  FormatItalic,
-  FormatUnderlined,
-  FormatStrikethrough,
-  Code,
-  CodeOff,
-  FormatQuote,
   FormatListBulleted,
   FormatListNumbered,
-  Link,
+  FormatQuote,
+  Code,
+  CodeOff,
+  Link as LinkIcon,
   FormatClear,
-  FormatAlignLeft,
-  FormatAlignCenter,
-  FormatAlignRight,
-  FormatAlignJustify,
+  TableChart,
+  Delete,
+  MergeType,
+  ViewColumn,
 } from '@mui/icons-material';
 
+// Опции заголовков
 const HEADING_OPTIONS = [
   { value: 'paragraph', label: 'Абзац' },
   { value: '1', label: 'Заголовок 1' },
@@ -36,14 +33,18 @@ const HEADING_OPTIONS = [
   { value: '6', label: 'Заголовок 6' },
 ];
 
-const VisualToolbar = ({ editor, alignImage }) => {
+const VisualToolbar = ({ editor }) => {
   if (!editor) return null;
 
   const setHeading = (level) => {
     if (level === 'paragraph') {
       editor.chain().focus().setParagraph().run();
     } else {
-      editor.chain().focus().toggleHeading({ level: parseInt(level) }).run();
+      editor
+        .chain()
+        .focus()
+        .toggleHeading({ level: parseInt(level, 10) })
+        .run();
     }
   };
 
@@ -65,136 +66,43 @@ const VisualToolbar = ({ editor, alignImage }) => {
   };
 
   return (
-    <Box sx={{ 
-      borderBottom: '1px solid #ccc', 
-      p: 1, 
-      bgcolor: '#f5f5f5',
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '4px',
-      alignItems: 'center'
-    }}>
-      {/* Выбор стиля */}
+    <Box
+      sx={{
+        borderBottom: '1px solid #ccc',
+        p: 1,
+        bgcolor: '#f5f5f5',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 1,
+        alignItems: 'center',
+      }}
+    >
+      {/* Выпадающий список заголовков */}
       <Select
         size="small"
         value={getCurrentHeading()}
         onChange={(e) => setHeading(e.target.value)}
-        sx={{ 
-          minWidth: 120, 
+        sx={{
+          minWidth: 120,
           height: 32,
           mr: 1,
-          '& .MuiSelect-select': { py: 0.5 }
+          '& .MuiSelect-select': { py: 0.5 },
         }}
       >
-        {HEADING_OPTIONS.map(option => (
+        {HEADING_OPTIONS.map((option) => (
           <MenuItem key={option.value} value={option.value}>
             {option.label}
           </MenuItem>
         ))}
       </Select>
 
-      <ButtonGroup size="small" sx={{ mr: 1 }}>
-        {/* Основное форматирование */}
-        <Tooltip title="Жирный">
-          <IconButton
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            color={editor.isActive('bold') ? 'primary' : 'default'}
-            size="small"
-            sx={{ width: 32, height: 32 }}
-          >
-            <FormatBold fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Курсив">
-          <IconButton
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            color={editor.isActive('italic') ? 'primary' : 'default'}
-            size="small"
-            sx={{ width: 32, height: 32 }}
-          >
-            <FormatItalic fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Подчеркнутый">
-          <IconButton
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-            color={editor.isActive('underline') ? 'primary' : 'default'}
-            size="small"
-            sx={{ width: 32, height: 32 }}
-          >
-            <FormatUnderlined fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Зачеркнутый">
-          <IconButton
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            color={editor.isActive('strike') ? 'primary' : 'default'}
-            size="small"
-            sx={{ width: 32, height: 32 }}
-          >
-            <FormatStrikethrough fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </ButtonGroup>
-
-<ButtonGroup size="small" sx={{ mr: 1 }}>
-  {/* Выравнивание текста */}
-  <Tooltip title="По левому краю">
-    <IconButton
-      onClick={() => editor.chain().focus().setTextAlign('left').run()}
-      color={editor.isActive({ textAlign: 'left' }) ? 'primary' : 'default'}
-      size="small"
-      sx={{ width: 32, height: 32 }}
-    >
-      <FormatAlignLeft fontSize="small" />
-    </IconButton>
-  </Tooltip>
-
-  <Tooltip title="По центру">
-    <IconButton
-      onClick={() => editor.chain().focus().setTextAlign('center').run()}
-      color={editor.isActive({ textAlign: 'center' }) ? 'primary' : 'default'}
-      size="small"
-      sx={{ width: 32, height: 32 }}
-    >
-      <FormatAlignCenter fontSize="small" />
-    </IconButton>
-  </Tooltip>
-
-  <Tooltip title="По правому краю">
-    <IconButton
-      onClick={() => editor.chain().focus().setTextAlign('right').run()}
-      color={editor.isActive({ textAlign: 'right' }) ? 'primary' : 'default'}
-      size="small"
-      sx={{ width: 32, height: 32 }}
-    >
-      <FormatAlignRight fontSize="small" />
-    </IconButton>
-  </Tooltip>
-
-  <Tooltip title="По ширине">
-    <IconButton
-      onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-      color={editor.isActive({ textAlign: 'justify' }) ? 'primary' : 'default'}
-      size="small"
-      sx={{ width: 32, height: 32 }}
-    >
-      <FormatAlignJustify fontSize="small" />
-    </IconButton>
-  </Tooltip>
-</ButtonGroup>
-
-      <ButtonGroup size="small" sx={{ mr: 1 }}>
-        {/* Списки и цитаты */}
+      {/* Списки, цитата, ссылка */}
+      <ButtonGroup size="small" variant="outlined" sx={{ bgcolor: 'white' }}>
         <Tooltip title="Маркированный список">
           <IconButton
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             color={editor.isActive('bulletList') ? 'primary' : 'default'}
             size="small"
-            sx={{ width: 32, height: 32 }}
           >
             <FormatListBulleted fontSize="small" />
           </IconButton>
@@ -205,7 +113,6 @@ const VisualToolbar = ({ editor, alignImage }) => {
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             color={editor.isActive('orderedList') ? 'primary' : 'default'}
             size="small"
-            sx={{ width: 32, height: 32 }}
           >
             <FormatListNumbered fontSize="small" />
           </IconButton>
@@ -216,18 +123,100 @@ const VisualToolbar = ({ editor, alignImage }) => {
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
             color={editor.isActive('blockquote') ? 'primary' : 'default'}
             size="small"
-            sx={{ width: 32, height: 32 }}
           >
             <FormatQuote fontSize="small" />
           </IconButton>
         </Tooltip>
 
+        <Tooltip title="Ссылка">
+          <IconButton
+            onClick={addLink}
+            color={editor.isActive('link') ? 'primary' : 'default'}
+            size="small"
+          >
+            <LinkIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </ButtonGroup>
+
+      <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
+      {/* Таблицы */}
+      <ButtonGroup size="small" variant="outlined" sx={{ bgcolor: 'white' }}>
+        <Tooltip title="Вставить таблицу 3x3">
+          <IconButton
+            onClick={() =>
+              editor
+                .chain()
+                .focus()
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .run()
+            }
+            size="small"
+          >
+            <TableChart fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Добавить колонку">
+          <span>
+            <IconButton
+              onClick={() => editor.chain().focus().addColumnAfter().run()}
+              disabled={!editor.can().addColumnAfter()}
+              size="small"
+            >
+              <ViewColumn fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip title="Добавить строку">
+          <span>
+            <IconButton
+              onClick={() => editor.chain().focus().addRowAfter().run()}
+              disabled={!editor.can().addRowAfter()}
+              size="small"
+            >
+              <TableChart fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip title="Объединить ячейки">
+          <span>
+            <IconButton
+              onClick={() => editor.chain().focus().mergeCells().run()}
+              disabled={!editor.can().mergeCells()}
+              size="small"
+            >
+              <MergeType fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+
+        <Tooltip title="Удалить таблицу">
+          <span>
+            <IconButton
+              onClick={() => editor.chain().focus().deleteTable().run()}
+              disabled={!editor.can().deleteTable()}
+              size="small"
+              color="error"
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </ButtonGroup>
+
+      <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
+      {/* Код и очистка */}
+      <ButtonGroup size="small" variant="outlined" sx={{ bgcolor: 'white' }}>
         <Tooltip title="Встроенный код">
           <IconButton
             onClick={() => editor.chain().focus().toggleCode().run()}
             color={editor.isActive('code') ? 'primary' : 'default'}
             size="small"
-            sx={{ width: 32, height: 32 }}
           >
             <Code fontSize="small" />
           </IconButton>
@@ -238,33 +227,17 @@ const VisualToolbar = ({ editor, alignImage }) => {
             onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             color={editor.isActive('codeBlock') ? 'primary' : 'default'}
             size="small"
-            sx={{ width: 32, height: 32 }}
           >
             <CodeOff fontSize="small" />
           </IconButton>
         </Tooltip>
       </ButtonGroup>
 
-      <ButtonGroup size="small" sx={{ mr: 1 }}>
-        {/* Ссылка */}
-        <Tooltip title="Ссылка">
-          <IconButton
-            onClick={addLink}
-            color={editor.isActive('link') ? 'primary' : 'default'}
-            size="small"
-            sx={{ width: 32, height: 32 }}
-          >
-            <Link fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </ButtonGroup>
-
-      {/* Очистка форматирования */}
       <Tooltip title="Очистить форматирование">
         <IconButton
           onClick={() => editor.chain().focus().unsetAllMarks().run()}
           size="small"
-          sx={{ width: 32, height: 32 }}
+          sx={{ ml: 1 }}
         >
           <FormatClear fontSize="small" />
         </IconButton>

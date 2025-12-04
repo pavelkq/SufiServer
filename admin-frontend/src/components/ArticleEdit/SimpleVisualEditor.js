@@ -11,12 +11,10 @@ const SimpleVisualEditor = ({ source, label }) => {
   const { editor } = useTiptapEditor(
     field.value || '', 
     (html) => {
-      // Сохраняем HTML при каждом изменении
       field.onChange(html);
     }
   );
 
-  // Сохраняем редактор для доступа из FileUploadSection
   useEffect(() => {
     console.log('=== DEBUG: Editor initialization ===');
     console.log('Editor instance:', editor);
@@ -31,7 +29,6 @@ const SimpleVisualEditor = ({ source, label }) => {
     }
     
     return () => {
-      // Очищаем при размонтировании
       if (window.currentEditor === editor) {
         window.currentEditor = null;
         console.log('🔄 Editor cleared from window.currentEditor');
@@ -41,16 +38,34 @@ const SimpleVisualEditor = ({ source, label }) => {
 
   return (
     <Box sx={{ mb: 4 }}>
+      <style>{`
+        .ProseMirror table {
+          border-collapse: collapse !important;
+          margin: 16px 0 !important;
+          width: 100% !important;
+        }
+        
+        .ProseMirror table td,
+        .ProseMirror table th {
+          border: 1px dashed #666 !important;
+          padding: 8px 12px !important;
+          min-width: 80px !important;
+        }
+        
+        .ProseMirror table th {
+          background-color: #f5f5f5 !important;
+          font-weight: bold !important;
+        }
+      `}</style>
+      
       <Typography variant="h6" gutterBottom>
         {label}
       </Typography>
       
-      {/* Панель инструментов */}
       {editor && (
         <VisualToolbar editor={editor} />
       )}
 
-      {/* Область редактирования */}
       <Box sx={{ 
         border: '1px solid #ccc', 
         borderRadius: '4px', 

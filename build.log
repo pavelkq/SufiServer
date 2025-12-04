@@ -1,0 +1,327 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 950B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 2.16kB 0.1s done
+#2 DONE 0.3s
+
+#3 [internal] load metadata for docker.io/library/node:18-alpine
+#3 DONE 1.4s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 97B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 DONE 0.0s
+
+#6 [1/7] FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+#6 DONE 0.0s
+
+#7 [2/7] WORKDIR /app
+#7 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 719.76kB 0.0s done
+#5 DONE 0.0s
+
+#8 [3/7] COPY package.json ./
+#8 DONE 0.1s
+
+#9 [4/7] RUN echo "=== НАЧИНАЕМ УСТАНОВКУ ЗАВИСИМОСТЕЙ ===" &&     echo "Node version: $(node --version)" &&     echo "NPM version: $(npm --version)" &&     echo "" &&     echo "=== СОДЕРЖИМОЕ PACKAGE.JSON (tiptap части) ===" &&     grep -A2 -B2 "tiptap" package.json &&     echo "" &&     echo "=== ПРОБУЕМ УСТАНОВИТЬ ВСЕ ЗАВИСИМОСТИ ===" &&     npm install --legacy-peer-deps 2>&1 | tee /tmp/npm-install.log &&     echo "" &&     echo "=== ПРОВЕРЯЕМ ЧТО УСТАНОВИЛОСЬ ===" &&     echo "Содержимое @tiptap:" &&     ls -la node_modules/@tiptap/ || echo "Папка @tiptap не найдена!" &&     echo "" &&     echo "=== ИЩЕМ ТАБЛИЦЫ В ЛОГАХ ===" &&     grep -i "table" /tmp/npm-install.log | head -20 || echo "Слово 'table' не найдено в логах" &&     echo "" &&     echo "=== ИЩЕМ ОШИБКИ В ЛОГАХ ===" &&     grep -i "error\|warn\|fail" /tmp/npm-install.log | head -20 || echo "Ошибок не найдено"
+#9 0.764 === НАЧИНАЕМ УСТАНОВКУ ЗАВИСИМОСТЕЙ ===
+#9 1.253 Node version: v18.20.8
+#9 2.132 NPM version: 10.8.2
+#9 2.132 
+#9 2.132 === СОДЕРЖИМОЕ PACKAGE.JSON (tiptap части) ===
+#9 2.136   "dependencies": {
+#9 2.136     "@mui/material": "5.14.0",
+#9 2.136     "@tiptap/extension-code-block": "2.27.1",
+#9 2.136     "@tiptap/extension-color": "2.27.1",
+#9 2.136     "@tiptap/extension-document": "2.27.1",
+#9 2.136     "@tiptap/extension-dropcursor": "2.27.1",
+#9 2.136     "@tiptap/extension-gapcursor": "2.27.1",
+#9 2.136     "@tiptap/extension-image": "2.27.1",
+#9 2.136     "@tiptap/extension-link": "2.27.1",
+#9 2.136     "@tiptap/extension-paragraph": "2.27.1",
+#9 2.136     "@tiptap/extension-subscript": "2.27.1",
+#9 2.136     "@tiptap/extension-superscript": "2.27.1",
+#9 2.136     "@tiptap/extension-table": "2.27.1",
+#9 2.136     "@tiptap/extension-table-cell": "2.27.1",
+#9 2.136     "@tiptap/extension-table-header": "2.27.1",
+#9 2.136     "@tiptap/extension-table-row": "2.27.1",
+#9 2.136     "@tiptap/extension-text": "2.27.1",
+#9 2.136     "@tiptap/extension-text-align": "2.27.1",
+#9 2.136     "@tiptap/extension-text-style": "2.27.1",
+#9 2.136     "@tiptap/extension-underline": "2.27.1",
+#9 2.136     "@tiptap/react": "2.27.1",
+#9 2.136     "@tiptap/starter-kit": "2.27.1",
+#9 2.136     "iconv-lite": "0.7.0",
+#9 2.136     "jira2md": "3.0.1",
+#9 2.136 
+#9 2.136 === ПРОБУЕМ УСТАНОВИТЬ ВСЕ ЗАВИСИМОСТИ ===
+#9 83.01 npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+#9 83.02 npm warn deprecated rollup-plugin-terser@7.0.2: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-terser
+#9 84.49 npm warn deprecated workbox-cacheable-response@6.6.0: workbox-background-sync@6.6.0
+#9 84.70 npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+#9 84.74 npm warn deprecated workbox-google-analytics@6.6.0: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
+#9 84.87 npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+#9 84.87 npm warn deprecated
+#9 84.87 npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+#9 86.29 npm warn deprecated w3c-hr-time@1.0.2: Use your platform's native performance.now() and performance.timeOrigin.
+#9 86.38 npm warn deprecated domexception@2.0.1: Use your platform's native DOMException instead
+#9 86.44 npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+#9 86.93 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+#9 86.98 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+#9 88.50 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+#9 88.66 npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+#9 89.11 npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+#9 89.11 npm warn deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-methods instead.
+#9 89.11 npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+#9 89.13 npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+#9 89.13 npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+#9 91.14 npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+#9 93.54 npm warn deprecated svgo@1.3.2: This SVGO version is no longer supported. Upgrade to v2.x.x.
+#9 94.69 npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+#9 95.46 npm warn deprecated @babel/plugin-proposal-private-property-in-object@7.21.11: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-property-in-object instead.
+#9 100.9 npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+#9 103.9 npm warn deprecated @mui/base@5.0.0-beta.7: This package has been replaced by @base-ui-components/react
+#9 130.8 
+#9 130.8 added 1471 packages, and audited 1472 packages in 2m
+#9 130.8 
+#9 130.8 316 packages are looking for funding
+#9 130.8   run `npm fund` for details
+#9 130.8 
+#9 130.8 12 vulnerabilities (6 moderate, 6 high)
+#9 130.8 
+#9 130.8 To address issues that do not require attention, run:
+#9 130.8   npm audit fix
+#9 130.8 
+#9 130.8 To address all issues (including breaking changes), run:
+#9 130.8   npm audit fix --force
+#9 130.8 
+#9 130.8 Run `npm audit` for details.
+#9 130.8 npm notice
+#9 130.8 npm notice New major version of npm available! 10.8.2 -> 11.6.4
+#9 130.8 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.4
+#9 130.8 npm notice To update run: npm install -g npm@11.6.4
+#9 130.8 npm notice
+#9 130.9 
+#9 130.9 === ПРОВЕРЯЕМ ЧТО УСТАНОВИЛОСЬ ===
+#9 130.9 Содержимое @tiptap:
+#9 130.9 total 188
+#9 130.9 drwxr-xr-x   38 root     root          4096 Dec  3 18:05 .
+#9 130.9 drwxr-xr-x  946 root     root         36864 Dec  3 18:06 ..
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 core
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-blockquote
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-bold
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-bubble-menu
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-bullet-list
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-code
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-code-block
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-color
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-document
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-dropcursor
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-floating-menu
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-gapcursor
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-hard-break
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-heading
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-history
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-horizontal-rule
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-image
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-italic
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-link
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-list-item
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-ordered-list
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-paragraph
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-strike
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-subscript
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-superscript
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-table
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-table-cell
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-table-header
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-table-row
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-text
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-text-align
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-text-style
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 extension-underline
+#9 130.9 drwxr-xr-x   20 root     root          4096 Dec  3 18:05 pm
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 react
+#9 130.9 drwxr-xr-x    4 root     root          4096 Dec  3 18:05 starter-kit
+#9 130.9 
+#9 130.9 === ИЩЕМ ТАБЛИЦЫ В ЛОГАХ ===
+#9 130.9 npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+#9 130.9 
+#9 130.9 === ИЩЕМ ОШИБКИ В ЛОГАХ ===
+#9 130.9 npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+#9 130.9 npm warn deprecated rollup-plugin-terser@7.0.2: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-terser
+#9 130.9 npm warn deprecated workbox-cacheable-response@6.6.0: workbox-background-sync@6.6.0
+#9 130.9 npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+#9 130.9 npm warn deprecated workbox-google-analytics@6.6.0: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
+#9 130.9 npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+#9 130.9 npm warn deprecated
+#9 130.9 npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+#9 130.9 npm warn deprecated w3c-hr-time@1.0.2: Use your platform's native performance.now() and performance.timeOrigin.
+#9 130.9 npm warn deprecated domexception@2.0.1: Use your platform's native DOMException instead
+#9 130.9 npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+#9 130.9 npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+#9 130.9 npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+#9 130.9 npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+#9 130.9 npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+#9 130.9 npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+#9 130.9 npm warn deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-methods instead.
+#9 130.9 npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+#9 130.9 npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+#9 130.9 npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+#9 DONE 131.7s
+
+#10 [5/7] RUN echo "=== ПЫТАЕМСЯ УСТАНОВИТЬ ТАБЛИЦЫ ЯВНО ===" &&     npm install --no-save       @tiptap/extension-table@2.1.13       @tiptap/extension-table-row@2.1.13       @tiptap/extension-table-header@2.1.13       @tiptap/extension-table-cell@2.1.13       --legacy-peer-deps 2>&1 | tee /tmp/npm-table-install.log &&     echo "" &&     echo "=== ПРОВЕРКА ПОСЛЕ ЯВНОЙ УСТАНОВКИ ===" &&     find node_modules -name "*table*" -type d 2>/dev/null | xargs -I {} echo "Найдено: {}" || echo "Таблиц не найдено!"
+#10 0.393 === ПЫТАЕМСЯ УСТАНОВИТЬ ТАБЛИЦЫ ЯВНО ===
+#10 6.034 
+#10 6.034 changed 4 packages, and audited 1472 packages in 5s
+#10 6.035 
+#10 6.035 316 packages are looking for funding
+#10 6.035   run `npm fund` for details
+#10 6.062 
+#10 6.062 12 vulnerabilities (6 moderate, 6 high)
+#10 6.062 
+#10 6.062 To address issues that do not require attention, run:
+#10 6.062   npm audit fix
+#10 6.062 
+#10 6.062 To address all issues (including breaking changes), run:
+#10 6.062   npm audit fix --force
+#10 6.062 
+#10 6.062 Run `npm audit` for details.
+#10 6.094 
+#10 6.094 === ПРОВЕРКА ПОСЛЕ ЯВНОЙ УСТАНОВКИ ===
+#10 6.191 Найдено: node_modules/react-markdown-editor-lite/esm/plugins/table
+#10 6.379 Найдено: node_modules/react-markdown-editor-lite/cjs/plugins/table
+#10 6.380 Найдено: node_modules/raw-body/node_modules/iconv-lite/encodings/tables
+#10 6.380 Найдено: node_modules/@tiptap/extension-table-header
+#10 6.381 Найдено: node_modules/@tiptap/extension-table-header/dist/packages/extension-table-header
+#10 6.382 Найдено: node_modules/@tiptap/pm/tables
+#10 6.383 Найдено: node_modules/@tiptap/extension-table-row
+#10 6.384 Найдено: node_modules/@tiptap/extension-table-row/dist/packages/extension-table-row
+#10 6.385 Найдено: node_modules/@tiptap/extension-table-cell
+#10 6.385 Найдено: node_modules/@tiptap/extension-table-cell/dist/packages/extension-table-cell
+#10 6.386 Найдено: node_modules/@tiptap/extension-table
+#10 6.386 Найдено: node_modules/@tiptap/extension-table/dist/packages/extension-table
+#10 6.387 Найдено: node_modules/fast-json-stable-stringify
+#10 6.388 Найдено: node_modules/source-map-loader/node_modules/iconv-lite/encodings/tables
+#10 6.388 Найдено: node_modules/body-parser/node_modules/iconv-lite/encodings/tables
+#10 6.389 Найдено: node_modules/iconv-lite/encodings/tables
+#10 6.389 Найдено: node_modules/es-abstract/2020/tables
+#10 6.390 Найдено: node_modules/es-abstract/2016/tables
+#10 6.390 Найдено: node_modules/es-abstract/2015/tables
+#10 6.391 Найдено: node_modules/es-abstract/2019/tables
+#10 6.392 Найдено: node_modules/es-abstract/2018/tables
+#10 7.260 Найдено: node_modules/es-abstract/2021/tables
+#10 7.261 Найдено: node_modules/es-abstract/2024/tables
+#10 7.262 Найдено: node_modules/es-abstract/2023/tables
+#10 7.263 Найдено: node_modules/es-abstract/2017/tables
+#10 7.264 Найдено: node_modules/es-abstract/2025/tables
+#10 7.265 Найдено: node_modules/es-abstract/2022/tables
+#10 7.266 Найдено: node_modules/stable
+#10 7.266 Найдено: node_modules/prosemirror-tables
+#10 7.267 Найдено: node_modules/text-table
+#10 7.268 Найдено: node_modules/whatwg-encoding/node_modules/iconv-lite/encodings/tables
+#10 7.269 Найдено: node_modules/@mui/material/Unstable_TrapFocus
+#10 7.270 Найдено: node_modules/@mui/material/Unstable_Grid2
+#10 7.271 Найдено: node_modules/@mui/material/node/Unstable_TrapFocus
+#10 7.272 Найдено: node_modules/@mui/material/node/Unstable_Grid2
+#10 7.273 Найдено: node_modules/@mui/material/legacy/Unstable_TrapFocus
+#10 7.274 Найдено: node_modules/@mui/material/legacy/Unstable_Grid2
+#10 7.275 Найдено: node_modules/@mui/material/modern/Unstable_TrapFocus
+#10 7.275 Найдено: node_modules/@mui/material/modern/Unstable_Grid2
+#10 7.276 Найдено: node_modules/@mui/system/esm/Unstable_Grid
+#10 7.277 Найдено: node_modules/@mui/system/legacy/Unstable_Grid
+#10 7.278 Найдено: node_modules/@mui/system/modern/Unstable_Grid
+#10 7.278 Найдено: node_modules/@mui/system/Unstable_Grid
+#10 7.279 Найдено: node_modules/jest-each/build/table
+#10 7.280 Найдено: node_modules/core-js/stable
+#10 7.281 Найдено: node_modules/core-js-pure/stable
+#10 7.378 Найдено: node_modules/json-stable-stringify-without-jsonify
+#10 DONE 7.7s
+
+#11 [6/7] COPY . .
+#11 DONE 0.7s
+
+#12 [7/7] RUN npm run build
+#12 0.652 
+#12 0.652 > admin-frontend@1.0.0 build
+#12 0.652 > react-scripts build
+#12 0.652 
+#12 2.846 node:internal/modules/cjs/loader:1143
+#12 2.846   throw err;
+#12 2.846   ^
+#12 2.846 
+#12 2.846 Error: Cannot find module 'ajv/dist/compile/codegen'
+#12 2.846 Require stack:
+#12 2.846 - /app/node_modules/ajv-keywords/dist/definitions/typeof.js
+#12 2.846 - /app/node_modules/ajv-keywords/dist/keywords/typeof.js
+#12 2.846 - /app/node_modules/ajv-keywords/dist/keywords/index.js
+#12 2.846 - /app/node_modules/ajv-keywords/dist/index.js
+#12 2.846 - /app/node_modules/schema-utils/dist/validate.js
+#12 2.846 - /app/node_modules/schema-utils/dist/index.js
+#12 2.846 - /app/node_modules/terser-webpack-plugin/dist/index.js
+#12 2.846 - /app/node_modules/react-scripts/config/webpack.config.js
+#12 2.846 - /app/node_modules/react-scripts/scripts/build.js
+#12 2.846     at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+#12 2.846     at Module._load (node:internal/modules/cjs/loader:981:27)
+#12 2.846     at Module.require (node:internal/modules/cjs/loader:1231:19)
+#12 2.846     at require (node:internal/modules/helpers:177:18)
+#12 2.846     at Object.<anonymous> (/app/node_modules/ajv-keywords/dist/definitions/typeof.js:3:19)
+#12 2.846     at Module._compile (node:internal/modules/cjs/loader:1364:14)
+#12 2.846     at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+#12 2.846     at Module.load (node:internal/modules/cjs/loader:1203:32)
+#12 2.846     at Module._load (node:internal/modules/cjs/loader:1019:12)
+#12 2.846     at Module.require (node:internal/modules/cjs/loader:1231:19) {
+#12 2.846   code: 'MODULE_NOT_FOUND',
+#12 2.846   requireStack: [
+#12 2.846     '/app/node_modules/ajv-keywords/dist/definitions/typeof.js',
+#12 2.846     '/app/node_modules/ajv-keywords/dist/keywords/typeof.js',
+#12 2.846     '/app/node_modules/ajv-keywords/dist/keywords/index.js',
+#12 2.846     '/app/node_modules/ajv-keywords/dist/index.js',
+#12 2.846     '/app/node_modules/schema-utils/dist/validate.js',
+#12 2.846     '/app/node_modules/schema-utils/dist/index.js',
+#12 2.846     '/app/node_modules/terser-webpack-plugin/dist/index.js',
+#12 2.846     '/app/node_modules/react-scripts/config/webpack.config.js',
+#12 2.846     '/app/node_modules/react-scripts/scripts/build.js'
+#12 2.846   ]
+#12 2.846 }
+#12 2.846 
+#12 2.846 Node.js v18.20.8
+#12 ERROR: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+------
+ > [7/7] RUN npm run build:
+2.846     '/app/node_modules/ajv-keywords/dist/index.js',
+2.846     '/app/node_modules/schema-utils/dist/validate.js',
+2.846     '/app/node_modules/schema-utils/dist/index.js',
+2.846     '/app/node_modules/terser-webpack-plugin/dist/index.js',
+2.846     '/app/node_modules/react-scripts/config/webpack.config.js',
+2.846     '/app/node_modules/react-scripts/scripts/build.js'
+2.846   ]
+2.846 }
+2.846 
+2.846 Node.js v18.20.8
+------
+Dockerfile:44
+
+--------------------
+
+  42 |     COPY . .
+
+  43 |     
+
+  44 | >>> RUN npm run build
+
+  45 |     
+
+  46 |     EXPOSE 3000
+
+--------------------
+
+failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
+
